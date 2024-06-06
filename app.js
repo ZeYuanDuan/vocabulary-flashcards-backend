@@ -1,7 +1,6 @@
 const express = require("express");
 const session = require("express-session");
-const passport = require("passport");
-// const router = require("./routes");
+const router = require("./routes");
 
 const app = express();
 
@@ -11,6 +10,8 @@ if (process.env.NODE_ENV !== "production") {
 
 const port = process.env.PORT || 3000;
 
+const passport = require("./config/passport");
+
 app.use(
   session({
     secret: process.env.SESSION_SECRET,
@@ -19,10 +20,10 @@ app.use(
   })
 );
 
-// app.use(passport.initialize());
-// app.use(passport.session());
+app.use(passport.initialize());
+app.use(passport.session());
 
-// app.use(router);
+app.use(router);
 
 app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);
