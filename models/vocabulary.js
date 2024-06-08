@@ -27,7 +27,12 @@ module.exports = (sequelize, DataTypes) => {
       },
       english: {
         type: DataTypes.STRING,
-        allowNull: true,
+        allowNull: false,
+        validate: {
+          notEmpty: {
+            msg: "存入資料庫前的最後驗證：英文不得為空值",
+          },
+        },
       },
       chinese: {
         type: DataTypes.STRING,

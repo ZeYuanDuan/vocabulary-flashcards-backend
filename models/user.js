@@ -26,7 +26,7 @@ module.exports = (sequelize, DataTypes) => {
         validate: {
           len: {
             args: [5, 12],
-            msg: "名稱長度需介於 5 到 12 個字元之間",
+            msg: "存入資料庫前的最後驗證：名稱長度需介於 5 到 12 個字元之間！",
           },
         },
       },
@@ -35,19 +35,13 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: false,
         validate: {
           isEmail: {
-            msg: "請輸入正確的 email 格式",
+            msg: "存入資料庫前的最後驗證：Email 格式錯誤！",
           },
         },
       },
       password: {
         type: DataTypes.STRING,
         allowNull: false,
-        validate: {
-          len: {
-            args: [3, 20],
-            msg: "密碼長度需介於 3 到 20 個字元之間",
-          },
-        },
       },
     },
     {
@@ -57,4 +51,3 @@ module.exports = (sequelize, DataTypes) => {
   );
   return User;
 };
-
