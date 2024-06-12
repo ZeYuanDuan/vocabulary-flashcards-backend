@@ -3,7 +3,7 @@ const session = require("express-session");
 const flash = require("connect-flash");
 
 const app = express();
-const port = process.env.PORT || 3000;
+const port = process.env.PORT;
 
 const router = require("./routes");
 const passport = require("./config/passport");
