@@ -15,8 +15,11 @@ if (process.env.NODE_ENV !== "production") {
 const port = process.env.PORT;
 
 const corsOptions = {
-  origin: "http://localhost:3000",
-  optionsSuccessStatus: 200, // 部分舊版瀏覽器會有問題
+  origin: [
+    "http://localhost:3000",
+    "https://voc-memorize-project.onrender.com",
+  ],
+  credentials: true,
 };
 
 app.use(cors(corsOptions));
