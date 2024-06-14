@@ -2,6 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const session = require("express-session");
 const flash = require("connect-flash");
+const bodyParser = require("body-parser");
 
 const app = express();
 
@@ -32,6 +33,7 @@ app.use(
   })
 );
 
+app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(passport.initialize());
 app.use(passport.session());
