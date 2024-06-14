@@ -13,17 +13,7 @@ const authHandler = require("../middlewares/authHandler");
 router.use("/vocabularies", authHandler, vocabularies);
 router.use("/users", users);
 
-router.get("/", authHandler, async (req, res, next) => {
-  try {
-    const { name, id } = req.user;
-    const vocStorage = await Vocabulary.count({
-      where: { UserId: id },
-    });
-    return res.json({ name, vocStorage });
-  } catch (error) {
-    next(error);
-  }
-});
+
 
 router.post("/login", async (req, res, next) => {
   passport.authenticate("local", (err, user, info) => {
@@ -58,6 +48,18 @@ router.post("/logout", (req, res) => {
     }
     return res.status(200).json({ message: "登出成功" });
   });
+});
+
+router.get("/", authHandler, async (req, res, next) => {
+  try {
+    const { name, id } = req.user;
+    const vocStorage = await Vocabulary.count({
+      where: { UserId: id },
+    });
+    return res.json({ name, vocStorage });
+  } catch (error) {
+    next(error);
+  }
 });
 
 module.exports = router;
