@@ -17,12 +17,13 @@ const authControllers = {
           return next(err);
         }
         try {
-          const { name, id } = user;
           const message = info.message;
+          const { name, id } = user;
           const vocStorage = await Vocabulary.count({
             where: { UserId: id },
           });
-          return res.json({ message, name, vocStorage });
+          const isAuthenticated = req.isAuthenticated();
+          return res.json({ message, name, vocStorage, isAuthenticated });
         } catch (err) {
           next(err);
         }
@@ -35,7 +36,8 @@ const authControllers = {
       if (error) {
         return next(error);
       }
-      return res.status(200).json({ message: "登出成功" });
+      const isAuthenticated = req.isAuthenticated();
+      return res.status(200).json({ message: "登出成功", isAuthenticated });
     });
   },
 };
