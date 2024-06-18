@@ -59,7 +59,7 @@ passport.use(new GoogleStrategy({
     const email = profile.emails[0].value;
     const name = profile.displayName;
 
-    console.log(`googleId: ${googleId}, email: ${email}, name: ${name}`);
+    console.log(`googleId: ${googleId}, email: ${email}, name: ${name}`);  //測試用
 
     return User.findOne({
       attributes: ["id", "name", "email", "googleId", "provider"],
@@ -85,8 +85,8 @@ passport.use(new GoogleStrategy({
           .then((user) => done(null, user, { message: "歡迎登入" }));
       })
       .catch((error) => {
+        console.log("Google user failed to created:", name, email, googleId); //測試用
         console.error(error);
-        console.log("Google user created:", name, email, googleId);
         error.message = "登入失敗";
         return done(error);
       });
