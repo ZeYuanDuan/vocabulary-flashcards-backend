@@ -40,6 +40,37 @@ const authControllers = {
       return res.status(200).json({ message: "登出成功", isAuthenticated });
     });
   },
+
+  getGoogleAuth: passport.authenticate("google", {
+    scope: ["profile", "email"],
+  }),
+
+  getGoogleAuthCallback: async (req, res, next) => {
+    passport.authenticate("google", (err, user, info) => {
+      if (err) {
+        return next(err);
+      }
+      if (!user) {
+        return res.status(401).json({ message: info.message });
+      }
+      return req.login(user, async (err) => {
+        if (err) {
+          return next(err);
+        }
+        try {
+          const message = info.message;
+          const { name, id } = user;
+          const vocStorage = await Vocabulary.count({
+            where: { UserId: id },
+          });
+          const isAuthenticated = req.isAuthenticated();
+          return res.json({ message, name, vocStorage, isAuthenticated });
+        } catch (err) {
+          next(err);
+        }
+      });
+    })(req, res, next);
+  },
 };
 
 module.exports = authControllers;

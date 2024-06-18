@@ -25,8 +25,8 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: false,
         validate: {
           len: {
-            args: [5, 12],
-            msg: "存入資料庫前的最後驗證：名稱長度需介於 5 到 12 個字元之間！",
+            args: [1, 12],
+            msg: "存入資料庫前的最後驗證：名稱長度需少於 12 個字元！",
           },
         },
       },
@@ -43,11 +43,34 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.STRING,
         allowNull: false,
       },
+      googleId: {
+        type: DataTypes.STRING,
+        allowNull: true,
+        unique: true,
+      },
+      provider: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        defaultValue: "local",
+      },
     },
     {
       sequelize,
       modelName: "User",
+      hooks: {
+        beforeCreate: (user, option) => {
+          if (user.provider === "google" && !user.googleId) {
+            throw new Error("使用 Google 驗證者，必須輸入 googleId");
+          }
+        },
+      },
+      beforeUpdate: (user, option) => {
+        if (user.provider === "google" && !user.googleId) {
+          throw new Error("使用 Google 驗證者，必須輸入 googleId");
+        }
+      },
     }
   );
+
   return User;
 };

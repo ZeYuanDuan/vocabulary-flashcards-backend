@@ -27,8 +27,8 @@ const userControllers = {
         return res.redirect("back");
       }
 
-      if (name.length < 5 || name.length > 12) {
-        res.status(400).json({ message: "名稱長度需介於 5 到 12 個字元之間" });
+      if (!name.length || name.length > 12) {
+        res.status(400).json({ message: "名稱長度需少於 12 個字元" });
         return res.redirect("back");
       }
     } catch (error) {
@@ -52,6 +52,8 @@ const userControllers = {
         name,
         email,
         password: hashedPassword,
+        provider: "local",
+        googleId: null,
         createdAt: new Date(),
         updatedAt: new Date(),
       });
