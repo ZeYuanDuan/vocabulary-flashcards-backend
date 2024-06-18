@@ -25,8 +25,8 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: false,
         validate: {
           len: {
-            args: [1, 12],
-            msg: "存入資料庫前的最後驗證：名稱長度需少於 12 個字元！",
+            args: [1, 50],
+            msg: "存入資料庫前的最後驗證：名稱長度需少於 50 個字元！",
           },
         },
       },
