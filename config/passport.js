@@ -86,6 +86,7 @@ passport.use(new GoogleStrategy({
       })
       .catch((error) => {
         console.error(error);
+        console.log("Google user created:", name, email, googleId);
         error.message = "登入失敗";
         return done(error);
       });

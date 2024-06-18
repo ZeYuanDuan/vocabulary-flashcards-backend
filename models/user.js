@@ -59,15 +59,21 @@ module.exports = (sequelize, DataTypes) => {
       modelName: "User",
       hooks: {
         beforeCreate: (user, option) => {
+          if (user.provider === "local" && !user.password) {
+            throw new Error("Password is required for local users");
+          }
           if (user.provider === "google" && !user.googleId) {
             throw new Error("使用 Google 驗證者，必須輸入 googleId");
           }
         },
-      },
-      beforeUpdate: (user, option) => {
-        if (user.provider === "google" && !user.googleId) {
-          throw new Error("使用 Google 驗證者，必須輸入 googleId");
-        }
+        beforeUpdate: (user, option) => {
+          if (user.provider === "local" && !user.password) {
+            throw new Error("Password is required for local users");
+          }
+          if (user.provider === "google" && !user.googleId) {
+            throw new Error("使用 Google 驗證者，必須輸入 googleId");
+          }
+        },
       },
     }
   );
