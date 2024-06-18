@@ -32,9 +32,14 @@ router.get("/test/auth/google", (req, res) => {
     <body>
       <h1>Google OAuth 2.0 Test</h1>
       <a href="/auth/google">Login with Google</a>
+      <form id="logout-form" action="/logout" method="POST" style="display: none;">
+        <input type="submit" value="Logout">
+      </form>
+      <a href="#" onclick="document.getElementById('logout-form').submit(); return false;">Logout</a>
     </body>
     </html>
-  `)
+  `);
 })
+
 
 module.exports = router;

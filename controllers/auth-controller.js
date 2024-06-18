@@ -43,6 +43,7 @@ const authControllers = {
 
   getGoogleAuth: passport.authenticate("google", {
     scope: ["profile", "email"],
+    prompt: "select_account",
   }),
 
   getGoogleAuthCallback: async (req, res, next) => {
