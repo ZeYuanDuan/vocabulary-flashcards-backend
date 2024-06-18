@@ -36,11 +36,13 @@ passport.use(
             return done(null, user, { message: "歡迎登入" });
           })
           .catch((error) => {
+            console.error(error);
             error.message = "bcrypt 比對密碼失敗";
             return done(error);
           });
       })
       .catch((error) => {
+        console.error(error);
         error.message = "登入失敗";
         return done(error);
       });
@@ -83,6 +85,7 @@ passport.use(new GoogleStrategy({
           .then((user) => done(null, user, { message: "歡迎登入" }));
       })
       .catch((error) => {
+        console.error(error);
         error.message = "登入失敗";
         return done(error);
       });

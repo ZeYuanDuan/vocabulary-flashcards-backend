@@ -1,11 +1,11 @@
 'use strict';
 
-require('dotenv').config();  // 引入dotenv
+require('dotenv').config();  // 引入 dotenv
 const path = require('path');
 
 module.exports = {
-  'config': path.resolve('config', 'config.js'),  // config的路徑為/config/config.js
-  'models-path': path.resolve('db','models'),  // models-path的路徑為/db/models
-  'seeders-path': path.resolve('seeders'),  // seeders-path的路徑為/seeders
-  'migrations-path': path.resolve('migrations')  //migrations-path的路徑為/migrations
+  'config': path.resolve('config', 'config.js'),  // config 的路徑為 /config/config.js
+  'models-path': path.resolve('db','models'),  // models-path 的路徑為 /db/models
+  'seeders-path': path.resolve('seeders'),  // seeders-path 的路徑為 /seeders
+  'migrations-path': path.resolve('migrations')  //migrations-path 的路徑為 /migrations
 };
