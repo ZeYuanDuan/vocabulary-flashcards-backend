@@ -66,6 +66,7 @@ const authControllers = {
         try {
           const message = info.message;
           const { id, name } = await User.findByPk(user.userId);
+          console.log("用來找單字的 id：", id, name) // 測試用
           const vocStorage = await Vocabulary.count({
             where: { userId: id },
           });

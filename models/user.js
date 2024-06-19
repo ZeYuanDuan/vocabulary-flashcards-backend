@@ -34,10 +34,7 @@ module.exports = (sequelize, DataTypes) => {
     {
       sequelize,
       modelName: "User",
-<<<<<<< HEAD
       tableName: "users",
-=======
->>>>>>> 9dd2529f18aa14f9a26720dca6317c915920cc88
     }
   );
 
