@@ -36,10 +36,7 @@ module.exports = (sequelize, DataTypes) => {
     {
       sequelize,
       modelName: "Google_User",
-<<<<<<< HEAD
-      tableName: "google_users",
-=======
->>>>>>> 9dd2529f18aa14f9a26720dca6317c915920cc88
+      tableName: "Google_Users", // 改變資料表名稱，以對應雲端資料庫
     }
   );
   return Google_User;

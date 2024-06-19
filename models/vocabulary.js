@@ -38,14 +38,14 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.STRING,
         allowNull: true,
       },
-    userId: {
-      type: DataTypes.BIGINT,
-      allowNull: false,
-      references: {
-        model: 'users',
-        key: 'id'
-      }
-    },
+      userId: {
+        type: DataTypes.BIGINT,
+        allowNull: false,
+        references: {
+          model: "users",
+          key: "id",
+        },
+      },
       example: {
         type: DataTypes.TEXT,
         allowNull: true,
@@ -58,7 +58,7 @@ module.exports = (sequelize, DataTypes) => {
     {
       sequelize,
       modelName: "Vocabulary",
-      tableName: "vocabularies",
+      tableName: "Vocabularies", // 改變資料表名稱，以對應雲端資料庫
     }
   );
 

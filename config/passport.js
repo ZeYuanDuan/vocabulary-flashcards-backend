@@ -78,10 +78,7 @@ passport.use(new GoogleStrategy({
               googleId,
               userId: user.id,
             })
-              .then((user) => {
-                const { email, googleId, userId } = user;
-                return done(null, { email, googleId, userId })
-              })
+              .then((user) => done(null, user))
               .catch((error) => {
                 console.error(error);
                 error.message = "建立 Google 使用者失敗";
