@@ -1,7 +1,7 @@
 const bcrypt = require("bcryptjs");
 
 const db = require("../models");
-const User = db.User;
+const { User, Local_User } = db;
 
 const userControllers = {
   postUsers: async (req, res, next) => {
@@ -36,7 +36,7 @@ const userControllers = {
     }
 
     try {
-      const existedUser = await User.findOne({ where: { email } });
+      const existedUser = await Local_User.findOne({ where: { email } });
       if (existedUser) {
         return res.status(400).json({ message: "此 Email 已被註冊" });
       }
@@ -48,15 +48,12 @@ const userControllers = {
       const salt = await bcrypt.genSalt(10);
       const hashedPassword = await bcrypt.hash(password, salt);
 
-      await User.create({
-        name,
-        email,
-        password: hashedPassword,
-        provider: "local",
-        googleId: null,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      });
+      await User.create({ name })
+      .then(user => Local_User.create({
+      email,
+      password: hashedPassword,
+      userId: user.id
+      }))
 
       return res.status(200).json({ message: "註冊成功" });
     } catch (error) {

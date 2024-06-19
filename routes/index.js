@@ -36,6 +36,28 @@ router.get("/test/auth/google", (req, res) => {
         <input type="submit" value="Logout">
       </form>
       <a href="#" onclick="document.getElementById('logout-form').submit(); return false;">Logout</a>
+      <h1>Vocabulary Form</h1>
+    <form action="/vocabularies" method="POST">
+        <div>
+            <label for="english">English:</label>
+            <input type="text" id="english" name="english" required>
+        </div>
+        <div>
+            <label for="chinese">Chinese:</label>
+            <input type="text" id="chinese" name="chinese">
+        </div>
+        <div>
+            <label for="definition">Definition:</label>
+            <textarea id="definition" name="definition"></textarea>
+        </div>
+        <div>
+            <label for="example">Example:</label>
+            <textarea id="example" name="example"></textarea>
+        </div>
+        <div>
+            <button type="submit">Submit</button>
+        </div>
+    </form>
     </body>
     </html>
   `);

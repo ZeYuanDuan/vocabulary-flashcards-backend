@@ -2,13 +2,13 @@ const db = require("../models");
 const Vocabulary = db.Vocabulary;
 
 const vocabularyControllers = {
-  getVocabularies: async (req, res) => {
+  getVocabularies: async (req, res, next) => {
     try {
-      const userID = req.user.id;
+      const userId = req.user.id;
 
       const vocabularies = await Vocabulary.findAll({
         where: {
-          userID,
+          userId,
         },
         attributes: ["english", "chinese", "definition", "example"],
       });
@@ -18,19 +18,19 @@ const vocabularyControllers = {
     }
   },
 
-  postVocabularies: async (req, res) => {
+  postVocabularies: async (req, res, next) => {
     const { english, chinese, definition, example } = req.body;
     if (!english) {
       return res.status(201).json({ message: "未加入英文單字" });
     }
     try {
-      const userID = req.user.id;
+      const userId = req.user.id;
       await Vocabulary.create({
         english,
         chinese,
         definition,
         example,
-        userID,
+        userId,
         createdAt: new Date(),
         updatedAt: new Date(),
       });
@@ -40,16 +40,16 @@ const vocabularyControllers = {
     }
   },
 
-  deleteVocabularies: async (req, res) => {
+  deleteVocabularies: async (req, res, next) => {
     const { english } = req.body;
     if (!english) {
       return res.status(201).json({ message: "未加入英文單字" });
     }
     try {
-      const userID = req.user.id;
+      const userId = req.user.id;
       const deleteResult = await Vocabulary.destroy({
         where: {
-          userID,
+          userId,
           english,
         },
       });
