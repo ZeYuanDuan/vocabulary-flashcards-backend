@@ -36,7 +36,10 @@ module.exports = (sequelize, DataTypes) => {
     {
       sequelize,
       modelName: "Google_User",
+<<<<<<< HEAD
       tableName: "google_users",
+=======
+>>>>>>> 9dd2529f18aa14f9a26720dca6317c915920cc88
     }
   );
   return Google_User;
