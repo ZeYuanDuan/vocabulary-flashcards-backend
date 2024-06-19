@@ -18,26 +18,40 @@ module.exports = {
           {
             id: 1,
             name: "JohnDoe",
-            email: "john.doe@example.com",
-            password: hash1,
-            googleId: null,
-            provider: "local",
             createdAt: new Date(),
             updatedAt: new Date(),
           },
           {
             id: 2,
             name: "JaneSmith",
-            email: "jane.smith@example.com",
-            password: hash2,
-            googleId: null,
-            provider: "local",
             createdAt: new Date(),
             updatedAt: new Date(),
           },
         ],
         { transaction }
       );
+            await queryInterface.bulkInsert(
+              "Local_Users",
+              [
+                {
+                  id: 1,
+                  email: "john.doe@example.com",
+                  password: hash1,
+                  userId: 1,
+                  createdAt: new Date(),
+                  updatedAt: new Date(),
+                },
+                {
+                  id: 2,
+                  email: "jane.smith@example.com",
+                  password: hash2,
+                  userId: 2,
+                  createdAt: new Date(),
+                  updatedAt: new Date(),
+                },
+              ],
+              { transaction }
+            );
 
       await queryInterface.bulkInsert(
         "Vocabularies",
@@ -80,7 +94,8 @@ module.exports = {
     try {
       transaction = await queryInterface.sequelize.transaction();
 
-      await queryInterface.bulkDelete("Boxes", null, { transaction });
+      await queryInterface.bulkDelete("Vocabularies", null, { transaction });
+      await queryInterface.bulkDelete("Local_Users", null, { transaction });
       await queryInterface.bulkDelete("Users", null, { transaction });
 
       await transaction.commit();

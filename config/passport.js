@@ -4,23 +4,25 @@ const GoogleStrategy = require("passport-google-oauth20")
 const bcrypt = require("bcryptjs");
 
 const db = require("../models");
-const User = db.User;
+const {User, Local_User, Google_User} = db;
 
 require("dotenv").config();
 
 passport.serializeUser((user, done) => {
-  const { id, name } = user;
-  return done(null, { id, name });
+  const { userId } = user;
+  return done(null, { userId });
 });
 passport.deserializeUser((user, done) => {
-  done(null, { id: user.id, name: user.name });
+  return User.findByPk(user.userId).then((user) => {
+    done(null, {id: user.id, name: user.name});
+  })
 });
 
 passport.use(
   new LocalStrategy({ usernameField: "email" }, (username, password, done) => {
-    return User.findOne({
-      attributes: ["id", "name", "email", "password", "provider"],
-      where: { email: username, provider: "local"},
+    return Local_User.findOne({
+      attributes: ["email", "password", "userId"],
+      where: { email: username },
       raw: true,
     })
       .then((user) => {
@@ -59,37 +61,39 @@ passport.use(new GoogleStrategy({
     const email = profile.emails[0].value;
     const name = profile.displayName;
 
-    console.log(`googleId: ${googleId}, email: ${email}, name: ${name}`);  //測試用
+    console.log("從 Google 拿到的資料：", `googleId: ${googleId}, email: ${email}, name: ${name}`);  //測試用
 
-    return User.findOne({
-      attributes: ["id", "name", "email", "googleId", "provider"],
-      where: { googleId, provider: "google" },
+    return Google_User.findOne({
+      attributes: ["email", "googleId", "userId"],
+      where: { googleId },
       raw: true,
     })
       .then((user) => {
         if (user) return done(null, user);
 
-        const randomPassword = Math.random().toString(36).slice(-8);
-
-        return bcrypt
-          .hash(randomPassword, 10)
-          .then((hash) =>
-            User.create({
-              name,
+        return User.create({ name })
+          .then((user) => {
+            return Google_User.create({
               email,
-              password: hash,
               googleId,
-              provider: "google",
+              userId: user.id,
             })
-          )
-          .then((user) => done(null, user, { message: "歡迎登入" }));
+              .then((user) => {
+                const { email, googleId, userId } = user;
+                return done(null, { email, googleId, userId })
+              })
+              .catch((error) => {
+                console.error(error);
+                error.message = "建立 Google 使用者失敗";
+                return done(error);
+              });
+          })
+          .catch((error) => {
+            console.error(error);
+            error.message = "建立使用者失敗";
+            return done(error);
+          });
       })
-      .catch((error) => {
-        console.log("Google user failed to created:", name, email, googleId); //測試用
-        console.error(error);
-        error.message = "登入失敗";
-        return done(error);
-      });
   }
 ))
 

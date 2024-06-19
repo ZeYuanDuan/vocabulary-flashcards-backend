@@ -14,7 +14,7 @@ module.exports = {
         type: Sequelize.STRING,
         allowNull: false,
         validate: {
-          len: [5, 12],
+          len: [1, 12],
         },
       },
       email: {

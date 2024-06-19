@@ -38,10 +38,14 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.STRING,
         allowNull: true,
       },
-      userID: {
-        type: DataTypes.BIGINT,
-        allowNull: false,
-      },
+    userId: {
+      type: DataTypes.BIGINT,
+      allowNull: false,
+      references: {
+        model: 'users',
+        key: 'id'
+      }
+    },
       example: {
         type: DataTypes.TEXT,
         allowNull: true,
@@ -54,6 +58,7 @@ module.exports = (sequelize, DataTypes) => {
     {
       sequelize,
       modelName: "Vocabulary",
+      tableName: "vocabularies",
     }
   );
 

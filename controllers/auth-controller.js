@@ -1,11 +1,15 @@
 const db = require("../models");
 const Vocabulary = db.Vocabulary;
+const User = db.User;
 
 const passport = require("passport");
 
 const authControllers = {
   postLogin: async (req, res, next) => {
     passport.authenticate("local", (err, user, info) => {
+    })
+    passport.authenticate("local", (err, user, info) => {
+      console.log("本地驗證過程存的東西：", user); // 測試用
       if (err) {
         return next(err);
       }
@@ -18,9 +22,9 @@ const authControllers = {
         }
         try {
           const message = info.message;
-          const { name, id } = user;
+          const { id, name } = await User.findByPk(user.userId);
           const vocStorage = await Vocabulary.count({
-            where: { UserId: id },
+            where: { userId: id },
           });
           const isAuthenticated = req.isAuthenticated();
           return res.json({ message, name, vocStorage, isAuthenticated });
@@ -48,6 +52,7 @@ const authControllers = {
 
   getGoogleAuthCallback: async (req, res, next) => {
     passport.authenticate("google", (err, user, info) => {
+      console.log("Google 驗證過程存的東西：", user); // 測試用
       if (err) {
         return next(err);
       }
@@ -60,9 +65,9 @@ const authControllers = {
         }
         try {
           const message = info.message;
-          const { name, id } = user;
+          const { id, name } = await User.findByPk(user.userId);
           const vocStorage = await Vocabulary.count({
-            where: { UserId: id },
+            where: { userId: id },
           });
           const isAuthenticated = req.isAuthenticated();
           return res.json({ message, name, vocStorage, isAuthenticated });

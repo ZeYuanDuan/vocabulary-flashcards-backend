@@ -30,51 +30,11 @@ module.exports = (sequelize, DataTypes) => {
           },
         },
       },
-      email: {
-        type: DataTypes.STRING,
-        allowNull: false,
-        validate: {
-          isEmail: {
-            msg: "存入資料庫前的最後驗證：Email 格式錯誤！",
-          },
-        },
-      },
-      password: {
-        type: DataTypes.STRING,
-        allowNull: false,
-      },
-      googleId: {
-        type: DataTypes.STRING,
-        allowNull: true,
-        unique: true,
-      },
-      provider: {
-        type: DataTypes.STRING,
-        allowNull: false,
-        defaultValue: "local",
-      },
     },
     {
       sequelize,
       modelName: "User",
-      hooks: {
-        beforeCreate: (user, option) => {
-          if (user.provider === "local" && !user.password) {
-            throw new Error("Password is required for local users");
-          }
-          if (user.provider === "google" && !user.googleId) {
-            throw new Error("使用 Google 驗證者，必須輸入 googleId");
-          }
-        },
-        beforeUpdate: (user, option) => {
-          if (user.provider === "local" && !user.password) {
-            throw new Error("Password is required for local users");
-          }
-          if (user.provider === "google" && !user.googleId) {
-            throw new Error("使用 Google 驗證者，必須輸入 googleId");
-          }
-        },
-      },
+      tableName: "users",
     }
   );
 
