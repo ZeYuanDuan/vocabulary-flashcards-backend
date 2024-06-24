@@ -19,6 +19,7 @@ const corsOptions = {
     "https://voc-memorize-project.onrender.com",
   ],
   methods: ["GET", "POST", "PUT", "DELETE"],
+  methods: ["GET", "POST", "PUT", "DELETE"],
   credentials: true,
 };
 
