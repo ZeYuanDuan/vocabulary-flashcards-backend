@@ -18,6 +18,7 @@ const corsOptions = {
     "http://localhost:3000",
     "https://voc-memorize-project.onrender.com",
   ],
+  methods: ["GET", "POST", "PUT", "DELETE"],
   credentials: true,
 };
 
@@ -28,6 +29,12 @@ app.use(
     secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
+    cookie: {
+      maxAge: 1000 * 60 * 60 * 24, // 1 天
+      secure: false,
+      httpOnly: true,
+      sameSite: "lax",
+    },
   })
 );
 
