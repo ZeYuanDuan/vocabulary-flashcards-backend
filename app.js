@@ -19,6 +19,7 @@ const corsOptions = {
     "https://voc-memorize-project.onrender.com",
   ],
   methods: ["GET", "POST", "PUT", "DELETE"],
+  methods: ["GET", "POST", "PUT", "DELETE"],
   credentials: true,
 };
 
@@ -30,7 +31,12 @@ app.use(
     resave: false,
     saveUninitialized: false,
     cookie: {
-      // maxAge: 1000 * 60 * 60 * 24, // 1 天
+<<<<<<<<< Temporary merge branch 1
+      secure: false, 
+      httpOnly: true,
+      sameSite: "none",
+=========
+      maxAge: 1000 * 60 * 60 * 24, // 1 天
       secure: false,
       httpOnly: true,
       sameSite: "lax",
