@@ -22,7 +22,9 @@ const corsOptions = {
   credentials: true,
 };
 
+app.set("trust proxy", 1);
 app.use(cors(corsOptions));
+
 
 app.use((req, res, next) => {
   session({
@@ -30,7 +32,7 @@ app.use((req, res, next) => {
     resave: false,
     saveUninitialized: false,
     cookie: {
-      maxAge: 1000 * 60 * 60 * 24, // 1 天
+      maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
       secure: false,
       httpOnly: true,
       sameSite: "lax",
