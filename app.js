@@ -3,7 +3,6 @@ const cors = require("cors");
 const session = require("express-session");
 const RedisStore = require("connect-redis").default;
 const redis = require("redis");
-const { URL } = require("url");
 
 const app = express();
 
@@ -12,7 +11,10 @@ const app = express();
 
 // 創建 Redis 客戶端
 const redisClient = redis.createClient({
-  url: "rediss://red-cpt37s2ju9rs73akch2g:CCRKnz7eKCnoEubcrsTutWr8jKclwtAW@oregon-redis.render.com:6379", // Note the 'rediss://' scheme for TLS connections
+  url:
+    process.env.NODE_ENV === "production"
+      ? "redis://red-cpt37s2ju9rs73akch2g:6379"
+      : "rediss://red-cpt37s2ju9rs73akch2g:CCRKnz7eKCnoEubcrsTutWr8jKclwtAW@oregon-redis.render.com:6379", // Note the 'rediss://' scheme for TLS connections
   tls: {}, // If additional TLS configuration is needed, specify those options here
 });
 
@@ -53,6 +55,7 @@ app.use(cors(corsOptions));
       // Log individual errors
       for (const err of error.errors) {
         console.error(err);
+        break;
       }
     }
   }
