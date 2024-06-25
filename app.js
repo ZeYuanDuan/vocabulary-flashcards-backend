@@ -12,9 +12,8 @@ const app = express();
 
 // 創建 Redis 客戶端
 const redisClient = redis.createClient({
-  host: "red-cpt37s2ju9rs73akch2g",
-  port: "6379",
-  tls: {}, // Render.com Redis 預設需要使用 TLS
+  url: "rediss://red-cpt37s2ju9rs73akch2g:CCRKnz7eKCnoEubcrsTutWr8jKclwtAW@oregon-redis.render.com:6379", // Note the 'rediss://' scheme for TLS connections
+  tls: {}, // If additional TLS configuration is needed, specify those options here
 });
 
 // 捕獲 Redis 客戶端的錯誤
@@ -59,12 +58,26 @@ app.use(cors(corsOptions));
   }
 })();
 
-async function testRedis() {
-  await redisClient.set("test", "test");
-  const test = await redisClient.get("test");
-  console.log("test", test);
+async function testRedisConnection() {
+  try {
+    await redisClient.set("connectionTest", "success");
+    const value = await redisClient.get("connectionTest");
+    if (value === "success") {
+      console.log(
+        "Redis 連結成功"
+      );
+    } else {
+      console.log(
+        "Redis 連結失敗"
+      );
+    }
+  } catch (error) {
+    console.error("Redis connection test failed with error:", error);
+  }
 }
-testRedis();
+
+// Call the function to test the Redis connection
+testRedisConnection();
 
 app.use(
   session({
