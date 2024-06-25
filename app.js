@@ -24,18 +24,20 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 
-app.use(
+app.use((req, res, next) => {
   session({
     secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
     cookie: {
-      // maxAge: 1000 * 60 * 60 * 24, // 1 天
+      maxAge: 1000 * 60 * 60 * 24, // 1 天
       secure: false,
       httpOnly: true,
       sameSite: "lax",
+      domain: req.hostname === "localhost" ? null : ".onrender.com",
     },
-  })
+  });
+}
 );
 
 app.use(express.json());
