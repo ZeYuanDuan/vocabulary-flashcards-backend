@@ -36,7 +36,7 @@ app.use((req, res, next) => {
       secure: false,
       httpOnly: true,
       sameSite: "lax",
-      domain: ".onrender.com",
+      // domain: ".onrender.com",
     },
   });
 }
