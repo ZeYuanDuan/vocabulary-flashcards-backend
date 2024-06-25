@@ -1,8 +1,28 @@
 const express = require("express");
 const cors = require("cors");
 const session = require("express-session");
+const RedisStore = require("connect-redis").default;
+const redis = require("redis");
+const { URL } = require("url");
 
 const app = express();
+
+// 解析 Redis URL
+const redisURL = new URL("redis://red-cpt37s2ju9rs73akch2g:6379");
+
+// 創建 Redis 客戶端
+const redisClient = redis.createClient({
+    host: redisURL.hostname,
+    port: redisURL.port,
+    password: redisURL.password,
+    tls: {} // Render.com Redis 預設需要使用 TLS
+});
+
+// 捕獲 Redis 客戶端的錯誤
+redisClient.on('error', function(err) {
+    console.error('Redis error: ', err);
+});
+
 
 const router = require("./routes");
 const passport = require("./config/passport");
@@ -28,6 +48,7 @@ app.use(cors(corsOptions));
 
 app.use((req, res, next) => {
   session({
+    store: new RedisStore({ client: redisClient }),
     secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
