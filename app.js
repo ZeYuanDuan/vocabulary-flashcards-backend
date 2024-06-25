@@ -42,25 +42,23 @@ const corsOptions = {
   credentials: true,
 };
 
-// app.set("trust proxy", 1);
+app.set("trust proxy", 1);
 app.use(cors(corsOptions));
 
 
-app.use((req, res, next) => {
-  session({
+app.use(session({
     store: new RedisStore({ client: redisClient }),
     secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
     cookie: {
-      // maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
+      maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
       secure: false,
       httpOnly: true,
       sameSite: "lax",
-      // domain: ".onrender.com",
+      domain: ".onrender.com",
     },
-  });
-}
+  })
 );
 
 app.use(express.json());
