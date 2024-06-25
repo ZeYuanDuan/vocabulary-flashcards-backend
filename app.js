@@ -45,6 +45,12 @@ const corsOptions = {
 app.set("trust proxy", 1);
 app.use(cors(corsOptions));
 
+async function testRedis() {
+  await redisClient.set("test", "test");
+  const test = await redisClient.get("test");
+  console.log("test", test);
+}
+testRedis();
 
 app.use(session({
     store: new RedisStore({ client: redisClient }),
