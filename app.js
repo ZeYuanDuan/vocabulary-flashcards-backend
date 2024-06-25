@@ -8,14 +8,13 @@ const { URL } = require("url");
 const app = express();
 
 // 解析 Redis URL
-const redisURL = new URL("redis://red-cpt37s2ju9rs73akch2g:6379");
+// const redisURL = new URL("redis://red-cpt37s2ju9rs73akch2g:6379");
 
 // 創建 Redis 客戶端
 const redisClient = redis.createClient({
-    host: redisURL.hostname,
-    port: redisURL.port,
-    password: redisURL.password,
-    tls: {} // Render.com Redis 預設需要使用 TLS
+  host: "red-cpt37s2ju9rs73akch2g",
+  port: "6379",
+  tls: {}, // Render.com Redis 預設需要使用 TLS
 });
 
 // 捕獲 Redis 客戶端的錯誤
@@ -44,6 +43,21 @@ const corsOptions = {
 
 app.set("trust proxy", 1);
 app.use(cors(corsOptions));
+
+(async () => {
+  try {
+    await redisClient.connect();
+    console.log("Connected to Redis");
+  } catch (error) {
+    console.error("Failed to connect to Redis:", error);
+    if (error instanceof AggregateError) {
+      // Log individual errors
+      for (const err of error.errors) {
+        console.error(err);
+      }
+    }
+  }
+})();
 
 async function testRedis() {
   await redisClient.set("test", "test");
