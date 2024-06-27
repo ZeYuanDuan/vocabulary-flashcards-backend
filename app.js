@@ -1,9 +1,9 @@
-const express = require("express");
 const cors = require("cors");
+const express = require("express");
 const session = require("express-session");
+const flash = require("connect-flash");
 
 const app = express();
-
 
 const router = require("./routes");
 const passport = require("./config/passport");
@@ -33,6 +33,7 @@ app.use(
     saveUninitialized: false,
   })
 );
+app.use(flash());
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));

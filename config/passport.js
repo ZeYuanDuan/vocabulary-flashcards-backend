@@ -23,36 +23,46 @@ passport.deserializeUser((user, done) => {
 });
 
 passport.use(
-  new LocalStrategy({ usernameField: "email" }, (username, password, done) => {
-    return Local_User.findOne({
-      attributes: ["email", "password", "userId"],
-      where: { email: username },
-      raw: true,
-    })
-      .then((user) => {
-        if (!user) {
-          return done(null, false, { message: "使用者不存在" });
-        }
-        return bcrypt
-          .compare(password, user.password)
-          .then((isMatch) => {
-            if (!isMatch) {
-              return done(null, false, { message: "Email 或密碼錯誤" });
-            }
-            return done(null, user, { message: "歡迎登入" });
-          })
-          .catch((error) => {
-            console.error(error);
-            error.message = "bcrypt 比對密碼失敗";
-            return done(error);
-          });
+  new LocalStrategy(
+    {
+      usernameField: "email",
+      passwordField: "password",
+      passReqToCallback: true,
+    },
+    (req, email, password, done) => {
+      return Local_User.findOne({
+        attributes: ["email", "password", "userId"],
+        where: { email },
+        raw: true,
       })
-      .catch((error) => {
-        console.error(error);
-        error.message = "登入失敗";
-        return done(error);
-      });
-  })
+        .then((user) => {
+          if (!user) {
+            req.flash("error_messages", "使用者不存在");
+            return done(null, false);
+          }
+          bcrypt
+            .compare(password, user.password)
+            .then((isMatch) => {
+              if (!isMatch) {
+                req.flash("error_messages", "Email 或密碼錯誤");
+                return done(null, false);
+              }
+              req.flash("success_messages", "歡迎登入");
+              return done(null, user);
+            })
+            .catch((error) => {
+              console.error(error);
+              error.message = "bcrypt 比對密碼失敗";
+              return done(error);
+            });
+        })
+        .catch((error) => {
+          console.error(error);
+          error.message = "登入失敗";
+          return done(error);
+        });
+    }
+  )
 );
 
 passport.use(new GoogleStrategy({

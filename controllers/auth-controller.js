@@ -13,47 +13,25 @@ const authControllers = {
         return next(err);
       }
       if (!user) {
-        return res.status(401).json({ message: info.message });
+        return res.status(401).json({ message: req.flash("error_messages")[0] });
       }
 
       try {
         const token = jwt.sign({ userId: user.userId }, process.env.JWT_SECRET, { expiresIn: "30d" });
-        const message = info.message;
         const { id, name } = await User.findByPk(user.userId);
         const vocStorage = await Vocabulary.count({
           where: { userId: id },
         });
         return res.json({
-          message,
-          data: {
-            name,
-            vocStorage,
-            isAuthenticated: true,
-          },
+          message: req.flash("success_messages")[0],
+          name,
+          vocStorage,
+          isAuthenticated: true,
           token
         })
       } catch (err) {
         next(err);
       }
-
-
-      
-      // return req.login(user, async (err) => {
-      //   if (err) {
-      //     return next(err);
-      //   }
-      //   try {
-      //     const message = info.message;
-      //     const { id, name } = await User.findByPk(user.userId);
-      //     const vocStorage = await Vocabulary.count({
-      //       where: { userId: id },
-      //     });
-      //     const isAuthenticated = req.isAuthenticated();
-      //     return res.json({ message, name, vocStorage, isAuthenticated });
-      //   } catch (err) {
-      //     next(err);
-      //   }
-      // });
     })(req, res, next);
   },
 
