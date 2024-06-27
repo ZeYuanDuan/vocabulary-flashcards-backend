@@ -2,26 +2,23 @@ const express = require("express");
 const cors = require("cors");
 const session = require("express-session");
 const RedisStore = require("connect-redis").default;
-const redis = require("redis");
+// const redis = require("redis");
 
 const app = express();
 
-// 解析 Redis URL
-// const redisURL = new URL("redis://red-cpt37s2ju9rs73akch2g:6379");
-
 // 創建 Redis 客戶端
-const redisClient = redis.createClient({
-  url:
-    process.env.NODE_ENV === "production"
-      ? "redis://red-cpt37s2ju9rs73akch2g:6379"
-      : "rediss://red-cpt37s2ju9rs73akch2g:CCRKnz7eKCnoEubcrsTutWr8jKclwtAW@oregon-redis.render.com:6379", // Note the 'rediss://' scheme for TLS connections
-  tls: {}, // If additional TLS configuration is needed, specify those options here
-});
+// const redisClient = redis.createClient({
+//   url:
+//     process.env.NODE_ENV === "production"
+//       ? "redis://red-cpt37s2ju9rs73akch2g:6379"
+//       : "rediss://red-cpt37s2ju9rs73akch2g:CCRKnz7eKCnoEubcrsTutWr8jKclwtAW@oregon-redis.render.com:6379", // Note the 'rediss://' scheme for TLS connections
+//   tls: {}, // If additional TLS configuration is needed, specify those options here
+// });
 
 // 捕獲 Redis 客戶端的錯誤
-redisClient.on('error', function(err) {
-    console.error('Redis error: ', err);
-});
+// redisClient.on('error', function(err) {
+//     console.error('Redis error: ', err);
+// });
 
 
 const router = require("./routes");
@@ -45,46 +42,46 @@ const corsOptions = {
 app.set("trust proxy", 1);
 app.use(cors(corsOptions));
 
-(async () => {
-  try {
-    await redisClient.connect();
-    console.log("Connected to Redis");
-  } catch (error) {
-    console.error("Failed to connect to Redis:", error);
-    if (error instanceof AggregateError) {
-      // Log individual errors
-      for (const err of error.errors) {
-        console.error(err);
-        break;
-      }
-    }
-  }
-})();
+// (async () => {
+//   try {
+//     await redisClient.connect();
+//     console.log("Connected to Redis");
+//   } catch (error) {
+//     console.error("Failed to connect to Redis:", error);
+//     if (error instanceof AggregateError) {
+//       // Log individual errors
+//       for (const err of error.errors) {
+//         console.error(err);
+//         break;
+//       }
+//     }
+//   }
+// })();
 
-async function testRedisConnection() {
-  try {
-    await redisClient.set("connectionTest", "success");
-    const value = await redisClient.get("connectionTest");
-    if (value === "success") {
-      console.log(
-        "Redis 連結成功"
-      );
-    } else {
-      console.log(
-        "Redis 連結失敗"
-      );
-    }
-  } catch (error) {
-    console.error("Redis connection test failed with error:", error);
-  }
-}
+// async function testRedisConnection() {
+//   try {
+//     await redisClient.set("connectionTest", "success");
+//     const value = await redisClient.get("connectionTest");
+//     if (value === "success") {
+//       console.log(
+//         "Redis 連結成功"
+//       );
+//     } else {
+//       console.log(
+//         "Redis 連結失敗"
+//       );
+//     }
+//   } catch (error) {
+//     console.error("Redis connection test failed with error:", error);
+//   }
+// }
 
 // Call the function to test the Redis connection
-testRedisConnection();
+// testRedisConnection();
 
 app.use(
   session({
-    store: new RedisStore({ client: redisClient }),
+    // store: new RedisStore({ client: redisClient }),
     secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
