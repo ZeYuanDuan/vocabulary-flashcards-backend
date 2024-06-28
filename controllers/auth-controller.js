@@ -6,34 +6,30 @@ const passport = require("passport");
 const jwt = require("jsonwebtoken");
 
 const authControllers = {
-  postLogin: async (req, res, next) => {
+  postLogin: (req, res, next) => {
     passport.authenticate("local", async (err, user, info) => {
-      console.log("本地驗證過程存的東西：", user); // 測試用
       if (err) {
         return next(err);
       }
       if (!user) {
-        return res.status(401).json({ message: req.flash("error_messages")[0] });
+        return res.status(401).json({ message: info.message });
       }
-
+      
       try {
         const token = jwt.sign({ userId: user.userId }, process.env.JWT_SECRET, { expiresIn: "30d" });
         const { id, name } = await User.findByPk(user.userId);
-        const vocStorage = await Vocabulary.count({
-          where: { userId: id },
-        });
+        const vocStorage = await Vocabulary.count({ where: { userId: id } });
+        
         return res.json({
-          message: req.flash("success_messages")[0],
+          message: info.message,
           name,
           vocStorage,
           isAuthenticated: true,
-          token
-        })
-      } catch (err) {
-        next(err);
-      }
-    })(req, res, next);
-  },
+          token});
+        } catch (err) {
+          next(err);
+        }
+      })},
 
   postLogout: (req, res) => {
     req.logout((error) => {

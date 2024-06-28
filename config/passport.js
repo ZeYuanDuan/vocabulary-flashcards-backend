@@ -22,14 +22,14 @@ passport.deserializeUser((user, done) => {
   })
 });
 
+
 passport.use(
   new LocalStrategy(
     {
       usernameField: "email",
       passwordField: "password",
-      passReqToCallback: true,
     },
-    (req, email, password, done) => {
+    (email, password, done) => {
       return Local_User.findOne({
         attributes: ["email", "password", "userId"],
         where: { email },
@@ -37,18 +37,15 @@ passport.use(
       })
         .then((user) => {
           if (!user) {
-            req.flash("error_messages", "使用者不存在");
-            return done(null, false);
+            return done(null, false, { message: "使用者不存在"});
           }
           bcrypt
             .compare(password, user.password)
             .then((isMatch) => {
               if (!isMatch) {
-                req.flash("error_messages", "Email 或密碼錯誤");
-                return done(null, false);
+                return done(null, false, { message: "Email 或密碼錯誤" });
               }
-              req.flash("success_messages", "歡迎登入");
-              return done(null, user);
+              return done(null, user, { message: "歡迎登入"});
             })
             .catch((error) => {
               console.error(error);

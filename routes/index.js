@@ -14,7 +14,7 @@ router.use("/vocabularies", authHandler, vocabularies);
 router.use("/users", users);
 
 
-router.post("/login",authController.postLogin);
+router.post("/login", authController.postLogin);
 router.post("/logout", authController.postLogout);
 router.get("/", authHandler, homeController.getHomePage);
 
