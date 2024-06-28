@@ -37,15 +37,15 @@ passport.use(
       })
         .then((user) => {
           if (!user) {
-            return done(null, false, { message: "使用者不存在"});
+            return done(null, false, { error_message: "使用者不存在"});
           }
           bcrypt
             .compare(password, user.password)
             .then((isMatch) => {
               if (!isMatch) {
-                return done(null, false, { message: "Email 或密碼錯誤" });
+                return done(null, false, { error_message: "Email 或密碼錯誤" });
               }
-              return done(null, user, { message: "歡迎登入"});
+              return done(null, user, { success_message: "歡迎登入"});
             })
             .catch((error) => {
               console.error(error);
@@ -80,7 +80,7 @@ passport.use(new GoogleStrategy({
       raw: true,
     })
       .then((user) => {
-        if (user) return done(null, user);
+        if (user) return done(null, user, { success_message: "歡迎登入" });
 
         return User.create({ name })
           .then((user) => {
@@ -89,7 +89,7 @@ passport.use(new GoogleStrategy({
               googleId,
               userId: user.id,
             })
-              .then((user) => done(null, user))
+              .then((user) => done(null, user, { success_message: "歡迎登入" }))
               .catch((error) => {
                 console.error(error);
                 error.message = "建立 Google 使用者失敗";
@@ -110,16 +110,16 @@ const jwtOptions = {
   secretOrKey: process.env.JWT_SECRET,
 };
 
-passport.use(new JWTStrategy(jwtOptions, async (jwtPayload, cb) => {
+passport.use(new JWTStrategy(jwtOptions, async (jwtPayload, done) => {
   const userId = jwtPayload.userId;
   return User.findByPk(userId)
     .then((user) => {
-      if (!user) return cb(null, false);
-      return cb(null, user);
+      if (!user) return done(null, false);
+      return done(null, user);
     })
     .catch((error) => {
       console.error(error);
-      return cb(error);
+      return done(error);
     });
 }))
 

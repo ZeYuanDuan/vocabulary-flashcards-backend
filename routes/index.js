@@ -15,10 +15,14 @@ router.use("/users", users);
 
 
 router.post("/login", authController.postLogin);
-router.post("/logout", authController.postLogout);
+// router.post("/logout", authController.postLogout);
 router.get("/", authHandler, homeController.getHomePage);
 
-router.get("/auth/google", authController.getGoogleAuth);
+router.get("/auth/google", passport.authenticate("google", {
+    scope: ["profile", "email"],
+    prompt: "select_account",
+  }));
+
 router.get("/auth/google/callback", authController.getGoogleAuthCallback);
 
 
