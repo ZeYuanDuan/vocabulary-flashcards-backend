@@ -1,4 +1,4 @@
-const db = require("../models");
+const db = require("../models/mysql");
 const Vocabulary = db.Vocabulary;
 const User = db.User;
 
@@ -37,7 +37,7 @@ const authControllers = {
       }
     })(req, res, next);
   },
-  
+
   getGoogleAuthCallback: async (req, res, next) => {
     passport.authenticate("google", async (err, user, info) => {
       console.log("Google 驗證過程存的東西：", user); // 測試用
@@ -46,14 +46,14 @@ const authControllers = {
       }
       try {
         const token = jwt.sign(
-          { userId: user.userId},
+          { userId: user.userId },
           process.env.JWT_SECRET,
           { expiresIn: "30d" }
-        )
+        );
         const { id, name } = await User.findByPk(user.userId);
         const vocStorage = await Vocabulary.count({
-          where: { userId: id}
-        })
+          where: { userId: id },
+        });
         return res.json({
           message: info.success_message,
           name,
@@ -65,7 +65,7 @@ const authControllers = {
         next(err);
       }
     })(req, res, next);
-  }
+  },
 };
 
 module.exports = authControllers;

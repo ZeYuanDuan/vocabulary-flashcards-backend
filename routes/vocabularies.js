@@ -5,6 +5,7 @@ const vocabularyController = require("../controllers/vocabulary-controller");
 
 router.get("/", vocabularyController.getVocabularies);
 router.post("/", vocabularyController.postVocabularies);
-router.delete("/", vocabularyController.deleteVocabularies);
+router.patch("/:id", vocabularyController.patchVocabularies);
+router.delete("/:id", vocabularyController.deleteVocabularies);
 
 module.exports = router;

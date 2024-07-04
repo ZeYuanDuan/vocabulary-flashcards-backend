@@ -1,6 +1,6 @@
 const bcrypt = require("bcryptjs");
 
-const db = require("../models");
+const db = require("../models/mysql");
 const { User, Local_User } = db;
 
 const userControllers = {
@@ -48,12 +48,13 @@ const userControllers = {
       const salt = await bcrypt.genSalt(10);
       const hashedPassword = await bcrypt.hash(password, salt);
 
-      await User.create({ name })
-      .then(user => Local_User.create({
-      email,
-      password: hashedPassword,
-      userId: user.id
-      }))
+      await User.create({ name }).then((user) =>
+        Local_User.create({
+          email,
+          password: hashedPassword,
+          userId: user.id,
+        })
+      );
 
       return res.status(200).json({ message: "註冊成功" });
     } catch (error) {

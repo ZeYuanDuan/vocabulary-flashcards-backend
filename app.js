@@ -1,6 +1,7 @@
 const cors = require("cors");
 const express = require("express");
 const session = require("express-session");
+const { redisClient, RedisStore } = require("./models/redis");
 
 const app = express();
 
@@ -27,9 +28,15 @@ app.use(cors(corsOptions));
 
 app.use(
   session({
+    store: new RedisStore({ client: redisClient }),
     secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
+    cookie: {
+      secure: process.env.NODE_ENV === "production",
+      httpOnly: true,
+      maxAge: 1000 * 60 * 60 * 24,
+    },
   })
 );
 
