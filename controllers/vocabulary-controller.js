@@ -1,44 +1,120 @@
 const db = require("../models/mysql");
+const { redisClient } = require("../models/redis");
 const Vocabulary = db.Vocabulary;
 
 const vocabularyControllers = {
   getVocabularies: async (req, res, next) => {
-    try {
-      const userId = req.user.id;
+    const userId = req.user.id;
+    const vocStorage = await redisClient.get(
+      `user:${userId}:vocabularies:storage`
+    );
+    const start = parseInt(req.query.start, 10);
+    const end = parseInt(req.query.end, 10);
 
-      const vocabularies = await Vocabulary.findAll({
-        where: {
-          userId,
-        },
-        attributes: ["id", "english", "chinese", "definition", "example"],
+    console.log(`單字存量：${vocStorage}，開始值：${start}，結束值：${end}`);
+
+    try {
+      if (
+        isNaN(start) ||
+        isNaN(end) ||
+        start < 0 ||
+        end < -1 ||
+        start > vocStorage - 1 ||
+        (start > end && end !== -1)
+      ) {
+        return res.status(400).json({ message: "無效的開始值或結束值" });
+      }
+
+      const userVocabulariesKey = `user:${userId}:vocabularies`;
+      const vocabularyIds = await redisClient.lRange(
+        userVocabulariesKey,
+        start,
+        end
+      );
+
+      const vocabulariesPromises = vocabularyIds.map(async (id) => {
+        const vocabularyKey = `user:${userId}:vocabularies:${id}`;
+        const rawVocabulary = await redisClient.hGetAll(vocabularyKey);
+        let vocabulary = {};
+        for (const [field, value] of Object.entries(rawVocabulary)) {
+          try {
+            vocabulary[field] = JSON.parse(value);
+          } catch (error) {
+            vocabulary[field] = value;
+          }
+        }
+        return vocabulary;
       });
+      const vocabularies = await Promise.all(vocabulariesPromises);
+
       return res.status(200).json(vocabularies);
     } catch (error) {
+      console.error("顯示 Redis 單字資料出現錯誤：", error);
       next(error);
     }
   },
 
   postVocabularies: async (req, res, next) => {
     const { english, chinese, definition, example } = req.body;
+
     if (!english) {
       return res.status(400).json({ message: "未加入英文單字" });
     }
+
+    const userId = req.user.id;
+    const dataField = {
+      english,
+      chinese,
+      definition,
+      example,
+      userId,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    const tempKey = `user:${userId}:vocabularies:temp`;
+
     try {
-      const userId = req.user.id;
-      const data = await Vocabulary.create({
-        english,
-        chinese,
-        definition,
-        example,
-        userId,
-        createdAt: new Date(),
-        updatedAt: new Date(),
+      // ? 使用 Promise 語法會造成無法執行 Redis 指令，ChatGPt 和 Copilot 也無法理解原因
+      const tempField = Object.entries(dataField).map(([field, value]) =>
+        redisClient.hSet(tempKey, field, JSON.stringify(value))
+      );
+      await Promise.all(tempField);
+
+      const userVocStorageKey = `user:${userId}:vocabularies:storage`;
+      await redisClient.incr(userVocStorageKey);
+      const userVocStorage = await redisClient.get(userVocStorageKey);
+
+      res.status(200).json({
+        message: "單字暫存成功",
+        vocStorage: userVocStorage,
       });
-      return res.status(201).json({
-        message: "單字新增成功",
-        vocabularyId: data.id.toString(),
+
+      setImmediate(async () => {
+        try {
+          const mysqlField = await Vocabulary.create(dataField);
+          const { id } = mysqlField;
+
+          const redisFieldWithId = { id, ...dataField };
+          const key = `user:${userId}:vocabularies:${id}`;
+
+          const redisField = Object.entries(redisFieldWithId).map(
+            ([field, value]) =>
+              redisClient.hSet(key, field, JSON.stringify(value))
+          );
+          await Promise.all(redisField);
+
+          await redisClient.expire(tempKey, 600);
+
+          const userVocabulariesKey = `user:${userId}:vocabularies`;
+          await redisClient.rPush(userVocabulariesKey, id.toString());
+        } catch (error) {
+          console.error("更新 MySQL 出現錯誤：", error);
+          next(error);
+        }
       });
     } catch (error) {
+      console.error("更新 Redis 出現錯誤：", error);
       next(error);
     }
   },
@@ -46,53 +122,93 @@ const vocabularyControllers = {
   patchVocabularies: async (req, res, next) => {
     const { id } = req.params;
     const { english, chinese, definition, example } = req.body;
-    try {
-      const userId = req.user.id;
-      const [updateResult] = await Vocabulary.update(
-        {
-          english,
-          chinese,
-          definition,
-          example,
-        },
-        {
-          where: {
-            id,
-            userId,
-          },
-        }
-      );
 
-      if (updateResult) {
-        return res.status(200).json({
-          message: `單字 ID ${id} 更新成功`,
-          vocabularyId: updateResult.id,
-        });
-      } else {
+    const userId = req.user.id;
+    const key = `user:${userId}:vocabularies:${id}`;
+
+    try {
+      const exists = await redisClient.exists(key);
+      if (!exists) {
         return res.status(404).json({ message: `找不到單字 ID ${id}` });
       }
+
+      const updateField = {
+        english,
+        chinese,
+        definition,
+        example,
+        updatedAt: new Date(),
+      };
+      const redisField = Object.entries(updateField).map(([field, value]) =>
+        redisClient.hSet(key, field, JSON.stringify(value))
+      );
+      await Promise.all(redisField);
+
+      res.status(200).json({
+        message: `單字 ID ${id} 更新成功`,
+        vocabularyId: id,
+      });
+
+      setImmediate(async () => {
+        try {
+          await Vocabulary.update(updateField, {
+            where: {
+              id,
+              userId,
+            },
+          });
+        } catch (error) {
+          console.error("更新 MySQL 出現錯誤：", error);
+          next(error);
+        }
+      });
     } catch (error) {
+      console.error("更新 Redis 出現錯誤：", error);
       next(error);
     }
   },
 
   deleteVocabularies: async (req, res, next) => {
     const { id } = req.params;
-    try {
-      const userId = req.user.id;
-      const deleteResult = await Vocabulary.destroy({
-        where: {
-          id,
-          userId,
-        },
-      });
+    const userId = req.user.id;
+    const key = `user:${userId}:vocabularies:${id}`;
+    const userVocStorageKey = `user:${userId}:vocabularies:storage`;
+    const userVocabulariesKey = `user:${userId}:vocabularies`;
 
-      if (deleteResult) {
-        return res.status(200).json({ message: `單字 ID ${id} 刪除成功` });
-      } else {
-        return res.status(404).json({ message: `找不到單字 ID ${id}` });
+    try {
+      const exists = await redisClient.exists(key);
+      if (!exists) {
+        res.status(404).json({ message: `找不到單字 ID ${id}` });
       }
+
+      const deleteResult = await redisClient.del(key);
+      if (deleteResult) {
+        await redisClient.decr(userVocStorageKey);
+        await redisClient.lRem(userVocabulariesKey, 0, id.toString());
+
+        res.status(200).json({ message: `單字 ID ${id} 刪除成功` });
+      } else {
+        res.status(404).json({ message: `找不到單字 ID ${id}` });
+      }
+
+      setImmediate(async () => {
+        try {
+          const deleteResult = await Vocabulary.destroy({
+            where: {
+              id,
+              userId,
+            },
+          });
+          if (!deleteResult) {
+            console.error(`MySQL delete failed for vocabulary ID ${id}`);
+          }
+        } catch (error) {
+          console.error("更新 MySQL 出現錯誤：", error);
+          next(error);
+        }
+      });
     } catch (error) {
+      console.error("更新 Redis 出現錯誤：", error);
       next(error);
     }
   },
