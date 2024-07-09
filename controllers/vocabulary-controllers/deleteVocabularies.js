@@ -1,4 +1,3 @@
-const { where } = require("sequelize");
 const db = require("../../models/mysql");
 const { redisClient } = require("../../models/redis");
 const Vocabulary = db.Vocabulary;
@@ -47,9 +46,16 @@ async function deleteVocabularies(req, res, next) {
         if (!deleteResult) {
           console.error(`MySQL delete failed for vocabulary ID ${id}`);
         }
-      } catch (error) {
+      } catch (mySQLError) {
         console.error("更新 MySQL 出現錯誤：", error);
-        next(error);
+        await redisClient.rPush(
+          "errorQueue",
+          JSON.stringify({
+            action: "deleteVocabularies",
+            userId,
+            error: mySQLError.message,
+          })
+        );
       }
     });
   } catch (error) {

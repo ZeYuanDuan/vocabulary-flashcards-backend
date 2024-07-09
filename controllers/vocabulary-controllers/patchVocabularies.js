@@ -15,6 +15,9 @@ async function patchVocabularies(req, res, next) {
   };
 
   const userId = req.user.id;
+
+  const newField = { id, ...updateField, createdAt: new Date() };
+
   const key = `user:${userId}:vocabularies:${id}`;
   const userVocStorageKey = `user:${userId}:vocabularies:storage`;
 
@@ -25,7 +28,7 @@ async function patchVocabularies(req, res, next) {
     if (!exists) {
       await Vocabulary.update(updateField, { where: { id, userId } });
 
-      await updateRedis(key, updateField);
+      await updateRedis(key, newField);
     } else {
       await updateRedis(key, updateField);
 
