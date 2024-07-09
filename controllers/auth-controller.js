@@ -5,6 +5,11 @@ const User = db.User;
 const passport = require("passport");
 const jwt = require("jsonwebtoken");
 
+const {
+  verifyRedisDataWithMySQL,
+  syncVocabulariesToRedis,
+} = require("../middlewares/dataHandler");
+
 const authControllers = {
   postLogin: async (req, res, next) => {
     passport.authenticate("local", async (err, user, info) => {

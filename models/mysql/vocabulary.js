@@ -11,7 +11,7 @@ module.exports = (sequelize, DataTypes) => {
     static associate(models) {
       // define association here
       Vocabulary.belongsTo(models.User, {
-        foreignKey: "userID",
+        foreignKey: "userId",
         as: "user",
       });
     }

@@ -4,6 +4,7 @@ const Vocabulary = db.Vocabulary;
 
 const vocabularyControllers = {
   getVocabularies: async (req, res, next) => {
+    const perfStart = performance.now(); // ! 測試用
     const userId = req.user.id;
     const vocStorage = await redisClient.get(
       `user:${userId}:vocabularies:storage`
@@ -47,7 +48,9 @@ const vocabularyControllers = {
       });
       const vocabularies = await Promise.all(vocabulariesPromises);
 
-      return res.status(200).json(vocabularies);
+      res.status(200).json(vocabularies);
+      const perfEnd = performance.now(); // ! 測試用
+      console.log(`Redis 讀取耗時: ${perfEnd - perfStart} ms`);
     } catch (error) {
       console.error("顯示 Redis 單字資料出現錯誤：", error);
       next(error);
@@ -185,8 +188,11 @@ const vocabularyControllers = {
       if (deleteResult) {
         await redisClient.decr(userVocStorageKey);
         await redisClient.lRem(userVocabulariesKey, 0, id.toString());
+        vocStorage = await redisClient.get(userVocStorageKey);
 
-        res.status(200).json({ message: `單字 ID ${id} 刪除成功` });
+        res
+          .status(200)
+          .json({ message: `單字 ID ${id} 刪除成功`, vocStorage: vocStorage });
       } else {
         res.status(404).json({ message: `找不到單字 ID ${id}` });
       }

@@ -2,11 +2,18 @@ const express = require("express");
 const router = express.Router();
 const passport = require("../config/passport");
 
+const { performance } = require("perf_hooks"); // ! 測試用
+
 const vocabularies = require("./vocabularies");
 const users = require("./users");
 
 const homeController = require("../controllers/home-controller");
 const authController = require("../controllers/auth-controller");
+
+const {
+  verifyRedisDataWithMySQL,
+  syncVocabulariesToRedis,
+} = require("../middlewares/dataHandler");
 
 const authHandler = require("../middlewares/authHandler");
 
@@ -14,7 +21,6 @@ router.use("/vocabularies", authHandler, vocabularies);
 router.use("/users", users);
 
 router.post("/login", authController.postLogin);
-// router.post("/logout", authController.postLogout);
 router.get("/", authHandler, homeController.getHomePage);
 
 router.get(
@@ -26,6 +32,33 @@ router.get(
 );
 
 router.get("/auth/google/callback", authController.getGoogleAuthCallback);
+
+// ===========================
+
+router.get("/sync", authHandler, async (req, res, next) => {
+  syncVocabulariesToRedis(req.user.id);
+}); // ! 測試用
+
+router.get("/verify", authHandler, async (req, res, next) => {
+  verifyRedisDataWithMySQL(req.user.id);
+}); // ! 測試用
+
+const db = require("../models/mysql");
+const Vocabulary = db.Vocabulary;
+
+router.get("/mysql", authHandler, async (req, res, next) => {
+  try {
+    const start = performance.now(); // ! 測試用
+    const vocabularies = await Vocabulary.findAll({
+      where: { userId: req.user.id },
+    });
+    const end = performance.now(); // ! 測試用
+    res.json(vocabularies);
+    console.log(`MySQL 讀取耗時: ${end - start} ms`);
+  } catch (error) {
+    next(error);
+  }
+});
 
 // 測試 Google OAuth2.0 頁面
 router.get("/test/auth/google", (req, res) => {
