@@ -24,7 +24,8 @@ async function postVocabularies(req, res, next) {
     const perfStart = performance.now(); // ! 測試用
     const mysqlField = await Vocabulary.create(dataField);
     const { id } = mysqlField;
-    const redisFieldWithId = { id, ...dataField };
+    const { userId, ...dataWithoutUserId } = dataField;
+    const redisFieldWithId = { id, ...dataWithoutUserId };
 
     const userVocStorageKey = `user:${userId}:vocabularies:storage`;
     await redisClient.incr(userVocStorageKey);

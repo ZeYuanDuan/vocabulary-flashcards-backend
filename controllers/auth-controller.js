@@ -30,7 +30,10 @@ const authControllers = {
         const vocStorage = await Vocabulary.count({
           where: { userId: id },
         });
-        return res.json({
+
+        await syncVocabulariesToRedis(user.userId); // ! 等 Redis 更新完畢
+
+        res.json({
           message: info.success_message,
           name,
           vocStorage,
@@ -59,7 +62,10 @@ const authControllers = {
         const vocStorage = await Vocabulary.count({
           where: { userId: id },
         });
-        return res.json({
+
+        await syncVocabulariesToRedis(user.userId); // ! 等 Redis 更新完畢
+
+        res.json({
           message: info.success_message,
           name,
           vocStorage,

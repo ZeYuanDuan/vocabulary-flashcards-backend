@@ -1,8 +1,8 @@
-const { verify } = require("jsonwebtoken");
 const db = require("../models/mysql");
 const { redisClient } = require("../models/redis");
 const Vocabulary = db.Vocabulary;
 
+// TODO 這個函式尚未完成，等之後再實作
 async function verifyRedisDataWithMySQL(userId) {
   const userKeys = `user:${userId}:vocabularies:*`;
 
@@ -140,6 +140,7 @@ async function syncVocabulariesToRedis(userId) {
   try {
     const mySQLVocabularies = await Vocabulary.findAll({
       where: { userId },
+      attributes: ["id"],
     });
 
     const userVocabulariesKey = `user:${userId}:vocabularies`;
@@ -149,29 +150,17 @@ async function syncVocabulariesToRedis(userId) {
     await redisClient.del(userVocStorageKey);
 
     for (const vocabulary of mySQLVocabularies) {
-      const key = `user:${userId}:vocabularies:${vocabulary.id}`;
-      const dataField = {
-        id: vocabulary.id,
-        english: vocabulary.english,
-        chinese: vocabulary.chinese,
-        example: vocabulary.example,
-        definition: vocabulary.definition,
-        createdAt: vocabulary.createdAt,
-        updatedAt: vocabulary.updatedAt,
-      };
-
-      const redisField = Object.entries(dataField).map(([field, value]) => {
-        return redisClient.hSet(key, field, JSON.stringify(value));
-      });
-      await Promise.all(redisField);
       await redisClient.rPush(userVocabulariesKey, vocabulary.id.toString());
     }
     const vocabulariesCount = await redisClient.lLen(userVocabulariesKey);
     await redisClient.set(userVocStorageKey, vocabulariesCount);
 
+    const mySQLUserId = await Vocabulary.count({ where: { userId } }); // ! 測試用
+    console.log(`MySQL 的 userId: ${mySQLUserId}`); // ! 測試用
+
     console.log("MySQL 資料已同步更新到 Redis");
     const perfEnd = performance.now(); // ! 測試用
-    console.log(`MySQL to Redis 耗時: ${perfEnd - perfStart} ms`); // ! 測試用s
+    console.log(`MySQL to Redis 耗時: ${perfEnd - perfStart} ms`); // ! 測試用
   } catch (error) {
     throw new Error(`同步資料至 Redis 出現錯誤：${error}`);
   }
