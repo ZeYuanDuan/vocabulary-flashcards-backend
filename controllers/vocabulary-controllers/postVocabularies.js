@@ -1,4 +1,3 @@
-const { where } = require("sequelize");
 const db = require("../../models/mysql");
 const { redisClient } = require("../../models/redis");
 const Vocabulary = db.Vocabulary;
@@ -21,45 +20,49 @@ async function postVocabularies(req, res, next) {
     updatedAt: new Date(),
   };
 
-  const tempKey = `user:${userId}:vocabularies:temp`;
-
   try {
-    // ? 使用 Promise 語法會造成無法執行 Redis 指令，ChatGPt 和 Copilot 也無法理解原因
-    const tempField = Object.entries(dataField).map(([field, value]) =>
-      redisClient.hSet(tempKey, field, JSON.stringify(value))
-    );
-    await Promise.all(tempField);
+    const perfStart = performance.now(); // ! 測試用
+    const mysqlField = await Vocabulary.create(dataField);
+    const { id } = mysqlField;
+    const redisFieldWithId = { id, ...dataField };
 
     const userVocStorageKey = `user:${userId}:vocabularies:storage`;
     await redisClient.incr(userVocStorageKey);
     const userVocStorage = await redisClient.get(userVocStorageKey);
 
     res.status(200).json({
-      message: "單字暫存成功",
+      message: "單字儲存成功",
+      vocabularyId: id,
       vocStorage: userVocStorage,
     });
+    const perfEnd = performance.now(); // ! 測試用
+    console.log(`Redis 讀取耗時: ${perfEnd - perfStart} ms`); // ! 測試用
 
     setImmediate(async () => {
       try {
-        const mysqlField = await Vocabulary.create(dataField);
-        const { id } = mysqlField;
-
-        const redisFieldWithId = { id, ...dataField };
+        // 然後將 MySQL 資料更新到 Redis
         const key = `user:${userId}:vocabularies:${id}`;
-
         const redisField = Object.entries(redisFieldWithId).map(
           ([field, value]) =>
             redisClient.hSet(key, field, JSON.stringify(value))
         );
         await Promise.all(redisField);
 
-        await redisClient.expire(tempKey, 600);
-
+        // 將單字 ID 加入用戶單字列表
         const userVocabulariesKey = `user:${userId}:vocabularies`;
         await redisClient.rPush(userVocabulariesKey, id.toString());
-      } catch (error) {
-        console.error("更新 MySQL 出現錯誤：", error);
-        next(error);
+      } catch (redisError) {
+        console.error("更新 Redis 時出現錯誤：", redisError);
+        // ! 將更新 Redis 的錯誤訊息，集中在 Redis 當中處理
+        await redisClient.rPush(
+          "errorQueue",
+          JSON.stringify({
+            action: "postVocabularies",
+            userId,
+            dataField: redisFieldWithId,
+            error: redisError.message,
+          })
+        );
       }
     });
   } catch (error) {

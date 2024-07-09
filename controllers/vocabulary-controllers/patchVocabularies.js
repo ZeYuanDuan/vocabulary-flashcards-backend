@@ -1,4 +1,3 @@
-const { where } = require("sequelize");
 const db = require("../../models/mysql");
 const { redisClient } = require("../../models/redis");
 const Vocabulary = db.Vocabulary;
@@ -17,51 +16,58 @@ async function patchVocabularies(req, res, next) {
 
   const userId = req.user.id;
   const key = `user:${userId}:vocabularies:${id}`;
+  const userVocStorageKey = `user:${userId}:vocabularies:storage`;
 
   try {
+    const userVocStorage = await redisClient.get(userVocStorageKey);
+
     const exists = await redisClient.exists(key);
     if (!exists) {
-      await Vocabulary.update(
-        { english, chinese, definition, example },
-        { where: { id, userId } }
-      );
+      await Vocabulary.update(updateField, { where: { id, userId } });
 
-      const redisField = Object.entries(updateField).map(([field, value]) =>
-        redisClient.hSet(key, field, JSON.stringify(value))
-      );
-      await Promise.all(redisField);
+      await updateRedis(key, updateField);
+    } else {
+      await updateRedis(key, updateField);
 
-      res.status(200).json({
-        message: `單字 ID ${id} 更新成功`,
+      setImmediate(async () => {
+        try {
+          await Vocabulary.update(updateField, {
+            where: {
+              id,
+              userId,
+            },
+          });
+        } catch (mySQLError) {
+          console.error("更新 MySQL 出現錯誤：", error);
+          await redisClient.rPush(
+            "errorQueue",
+            JSON.stringify({
+              action: "patchVocabularies",
+              userId,
+              dataField: updateField,
+              error: mySQLError.message,
+            })
+          );
+        }
       });
     }
 
-    const redisField = Object.entries(updateField).map(([field, value]) =>
-      redisClient.hSet(key, field, JSON.stringify(value))
-    );
-    await Promise.all(redisField);
-
     res.status(200).json({
       message: `單字 ID ${id} 更新成功`,
-    });
-
-    setImmediate(async () => {
-      try {
-        await Vocabulary.update(updateField, {
-          where: {
-            id,
-            userId,
-          },
-        });
-      } catch (error) {
-        console.error("更新 MySQL 出現錯誤：", error);
-        next(error);
-      }
+      vocStorage: userVocStorage,
     });
   } catch (error) {
     console.error("更新 Redis 出現錯誤：", error);
     next(error);
   }
 }
+
+// 輔助函數：更新 Redis
+const updateRedis = async (key, updateField) => {
+  const redisField = Object.entries(updateField).map(([field, value]) =>
+    redisClient.hSet(key, field, JSON.stringify(value))
+  );
+  await Promise.all(redisField);
+};
 
 module.exports = patchVocabularies;

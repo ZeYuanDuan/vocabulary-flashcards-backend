@@ -38,9 +38,13 @@ async function getVocabularies(req, res, next) {
 
       const exists = await redisClient.exists(vocabularyKey);
       if (exists) {
-        parseVocabularyFromRedis(vocabularyKey);
+        return await parseVocabularyFromRedis(vocabularyKey);
       } else {
-        fetchAndCacheVocabularyFromMySQL(id, userId, vocabularyKey);
+        return await fetchAndCacheVocabularyFromMySQL(
+          id,
+          userId,
+          vocabularyKey
+        );
       }
     });
     const vocabularies = await Promise.all(vocabulariesPromises);
@@ -66,6 +70,7 @@ const parseVocabularyFromRedis = async (vocabularyKey) => {
       vocabulary[field] = value;
     }
   }
+  console.log(vocabulary);
   return vocabulary;
 };
 
@@ -73,28 +78,30 @@ const parseVocabularyFromRedis = async (vocabularyKey) => {
 const fetchAndCacheVocabularyFromMySQL = async (id, userId, vocabularyKey) => {
   const vocabulary = await Vocabulary.findOne({
     where: { id, userId },
-    exclude: ["userId"],
+    attributes: { exclude: ["userId"] },
   });
   if (!vocabulary) {
     return null;
   }
-  for (const [field, value] of Object.entries(vocabulary)) {
+  const dataValue = vocabulary.dataValues;
+  for (const [field, value] of Object.entries(dataValue)) {
     await redisClient.hSet(vocabularyKey, field, JSON.stringify(value));
   }
   return vocabulary;
 };
 
 // 輔助函數：統一單字資料類型
-const normalize = (vocabulary) => {
-  return {
-    id: parseInt(vocabulary.id, 10),
-    english: vocabulary.english.toString(),
-    chinese: vocabulary.chinese ? vocabulary.chinese.toString() : null,
-    example: vocabulary.example ? vocabulary.example.toString() : null,
-    definition: vocabulary.definition ? vocabulary.definition.toString() : null,
-    createdAt: new Date(vocabulary.createdAt),
-    updatedAt: new Date(vocabulary.updatedAt),
-  };
-};
+// * 目前看來資料類型相符，暫且不需要使用到此函數
+// const normalize = (vocabulary) => {
+//   return {
+//     id: parseInt(vocabulary.id, 10),
+//     english: vocabulary.english.toString(),
+//     chinese: vocabulary.chinese ? vocabulary.chinese.toString() : null,
+//     example: vocabulary.example ? vocabulary.example.toString() : null,
+//     definition: vocabulary.definition ? vocabulary.definition.toString() : null,
+//     createdAt: new Date(vocabulary.createdAt),
+//     updatedAt: new Date(vocabulary.updatedAt),
+//   };
+// };
 
 module.exports = getVocabularies;
