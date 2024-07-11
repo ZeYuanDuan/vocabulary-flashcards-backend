@@ -23,11 +23,18 @@ router.use("/users", users);
 router.post("/login", authController.postLogin);
 
 router.get("/", authHandler, homeController.getHomePage);
+
 router.get(
   "/recommended",
   authHandler,
   homeController.getRecommendedVocabularies
 );
+
+const cron = require("node-cron");
+cron.schedule("00 7 * * *", async () => {
+  await homeController.fetchAndStoreVocabularies(1); // ! 這裡的 1 是測試用，硬寫進來的，千萬不要這樣做。接下來要改成自動找 userId
+  console.log("fetchAndStoreVocabularies has been executed.");
+});
 
 router.get(
   "/auth/google",
@@ -38,12 +45,6 @@ router.get(
 );
 
 router.get("/auth/google/callback", authController.getGoogleAuthCallback);
-
-
-
-
-
-
 
 // ===========================
 
