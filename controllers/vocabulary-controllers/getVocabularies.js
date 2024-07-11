@@ -70,7 +70,7 @@ const parseVocabularyFromRedis = async (vocabularyKey) => {
       vocabulary[field] = value;
     }
   }
-  console.log(vocabulary);
+  // console.log(vocabulary); // ! 測試用
   return vocabulary;
 };
 
