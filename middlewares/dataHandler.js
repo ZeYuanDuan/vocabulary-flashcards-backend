@@ -156,7 +156,7 @@ async function syncVocabulariesToRedis(userId) {
     await redisClient.set(userVocStorageKey, vocabulariesCount);
 
     // const mySQLUserId = await Vocabulary.count({ where: { userId } }); // ! 測試用
-    console.log(`MySQL 的 單字數量: ${mySQLUserId}`); // ! 測試用
+    // console.log(`MySQL 的 單字數量: ${mySQLUserId}`); // ! 測試用
 
     console.log("MySQL 資料已同步更新到 Redis");
     const perfEnd = performance.now(); // ! 測試用
