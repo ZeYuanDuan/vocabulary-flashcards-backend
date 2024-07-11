@@ -21,7 +21,13 @@ router.use("/vocabularies", authHandler, vocabularies);
 router.use("/users", users);
 
 router.post("/login", authController.postLogin);
+
 router.get("/", authHandler, homeController.getHomePage);
+router.get(
+  "/recommended",
+  authHandler,
+  homeController.getRecommendedVocabularies
+);
 
 router.get(
   "/auth/google",
@@ -32,6 +38,12 @@ router.get(
 );
 
 router.get("/auth/google/callback", authController.getGoogleAuthCallback);
+
+
+
+
+
+
 
 // ===========================
 

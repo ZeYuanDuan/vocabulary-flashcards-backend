@@ -14,6 +14,8 @@ const homeControllers = {
       next(error);
     }
   },
+
+  getRecommendedVocabularies: async (req, res, next) => {},
 };
 
 module.exports = homeControllers;

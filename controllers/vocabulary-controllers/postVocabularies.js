@@ -39,15 +39,27 @@ async function postVocabularies(req, res, next) {
     const perfEnd = performance.now(); // ! 測試用
     console.log(`Redis 讀取耗時: ${perfEnd - perfStart} ms`); // ! 測試用
 
+    const filteredRedisFieldWithId = Object.entries(redisFieldWithId).reduce(
+      (acc, [key, value]) => {
+        if (value !== undefined) {
+          acc[key] = value;
+        }
+        return acc;
+      },
+      {}
+    );
+
+    console.log("filteredRedisFieldWithId", filteredRedisFieldWithId);
+
     setImmediate(async () => {
       try {
-        // 然後將 MySQL 資料更新到 Redis
+        // 更新 Redis 單字資料
         const key = `user:${userId}:vocabularies:${id}`;
-        const redisField = Object.entries(redisFieldWithId).map(
+        const redisFieldPromise = Object.entries(filteredRedisFieldWithId).map(
           ([field, value]) =>
             redisClient.hSet(key, field, JSON.stringify(value))
         );
-        await Promise.all(redisField);
+        await Promise.all(redisFieldPromise);
 
         // 將單字 ID 加入用戶單字列表
         const userVocabulariesKey = `user:${userId}:vocabularies`;
