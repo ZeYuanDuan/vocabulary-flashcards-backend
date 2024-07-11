@@ -26,15 +26,17 @@ async function patchVocabularies(req, res, next) {
 
     const exists = await redisClient.exists(key);
     if (!exists) {
-      await Vocabulary.update(updateField, { where: { id, userId } });
+      await Vocabulary.update(filterUndefined(updateField), {
+        where: { id, userId },
+      });
 
-      await updateRedis(key, newField);
+      await updateRedis(key, filterUndefined(newField));
     } else {
-      await updateRedis(key, updateField);
+      await updateRedis(key, filterUndefined(updateField));
 
       setImmediate(async () => {
         try {
-          await Vocabulary.update(updateField, {
+          await Vocabulary.update(filterUndefined(updateField), {
             where: {
               id,
               userId,
@@ -71,6 +73,16 @@ const updateRedis = async (key, updateField) => {
     redisClient.hSet(key, field, JSON.stringify(value))
   );
   await Promise.all(redisField);
+};
+
+// 輔助函數：過濾掉 undefined 的欄位
+const filterUndefined = (obj) => {
+  return Object.entries(obj).reduce((acc, [key, value]) => {
+    if (value !== undefined) {
+      acc[key] = value;
+    }
+    return acc;
+  }, {});
 };
 
 module.exports = patchVocabularies;

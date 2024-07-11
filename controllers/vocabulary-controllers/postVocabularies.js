@@ -39,25 +39,14 @@ async function postVocabularies(req, res, next) {
     const perfEnd = performance.now(); // ! 測試用
     console.log(`Redis 讀取耗時: ${perfEnd - perfStart} ms`); // ! 測試用
 
-    const filteredRedisFieldWithId = Object.entries(redisFieldWithId).reduce(
-      (acc, [key, value]) => {
-        if (value !== undefined) {
-          acc[key] = value;
-        }
-        return acc;
-      },
-      {}
-    );
-
-    console.log("filteredRedisFieldWithId", filteredRedisFieldWithId);
-
     setImmediate(async () => {
       try {
         // 更新 Redis 單字資料
         const key = `user:${userId}:vocabularies:${id}`;
-        const redisFieldPromise = Object.entries(filteredRedisFieldWithId).map(
-          ([field, value]) =>
-            redisClient.hSet(key, field, JSON.stringify(value))
+        const redisFieldPromise = Object.entries(
+          filterUndefined(redisFieldWithId)
+        ).map(([field, value]) =>
+          redisClient.hSet(key, field, JSON.stringify(value))
         );
         await Promise.all(redisFieldPromise);
 
@@ -83,5 +72,15 @@ async function postVocabularies(req, res, next) {
     next(error);
   }
 }
+
+// 輔助函數：過濾掉 undefined 的欄位
+const filterUndefined = (obj) => {
+  return Object.entries(obj).reduce((acc, [key, value]) => {
+    if (value !== undefined) {
+      acc[key] = value;
+    }
+    return acc;
+  }, {});
+};
 
 module.exports = postVocabularies;
