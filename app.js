@@ -19,7 +19,7 @@ const corsOptions = {
     "http://localhost:3000",
     "https://voc-memorize-project.onrender.com",
   ],
-  methods: ["GET", "POST", "PUT", "DELETE"],
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
   credentials: true,
 };
 

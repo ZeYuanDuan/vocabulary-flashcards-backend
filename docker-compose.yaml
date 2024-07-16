@@ -25,6 +25,7 @@ services:
       REDIS_PORT: ${REDIS_PORT}
       REDIS_MAX_CONNECTIONS: ${REDIS_MAX_CONNECTIONS}
 
+  # ! 因為現在兩個資料庫都在雲端，其實可以不用設定 db 和 redis 的 container
   db:
     image: mysql:5.7
     environment:
