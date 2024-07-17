@@ -32,8 +32,8 @@ router.get(
 
 const cron = require("node-cron");
 cron.schedule("00 7 * * *", async () => {
-  await homeController.fetchAndStoreVocabularies(1); // ! 這裡的 1 是測試用，硬寫進來的，千萬不要這樣做。接下來要改成自動找 userId
-  console.log("fetchAndStoreVocabularies has been executed.");
+  await homeController.fetchVocabulariesDetail(1); // ! 這裡的 1 是測試用，硬寫進來的，千萬不要這樣做。接下來要改成自動找 userId
+  console.log("fetchVocabulariesDetail has been executed.");
 });
 
 router.get(
@@ -73,7 +73,14 @@ router.get("/mysql", authHandler, async (req, res, next) => {
   }
 });
 
-// 測試 Google OAuth2.0 頁面
+// ! 測試用
+router.get("/axiosTest", async (rea, res, next) => {
+  // await homeController.fetchAndStoreVocabularies(1);
+  // await homeController.testAxiosAPI();
+  // await homeController.fetchVocabulariesDetail(1);
+});
+
+// ! 測試 Google OAuth2.0 頁面
 router.get("/test/auth/google", (req, res) => {
   res.send(`
     <!DOCTYPE html>
