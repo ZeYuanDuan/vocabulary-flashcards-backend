@@ -28,14 +28,14 @@ router.get("/", authHandler, homeController.getHomePage);
 router.get("/daily", homeController.getDailyVocabularies);
 
 // TODO 收集明日的每日單字
-cron.schedule("00 17 * * *", async () => {
+cron.schedule("10 00 * * *", async () => {
   await homeController.fetchAndStoreVocabularies();
   await homeController.fetchVocabulariesDetail();
   console.log("明日單字已準備完畢");
 });
 
-// TODO 一天開始時，將已經準備好的單字，存到 Redis 的 daily key，再刪除過期單字
-cron.schedule("28 17 * * *", async () => {
+// TODO 一天開始時，將已經準備好的單字，存到 Redis 的今日單字
+cron.schedule("00 00 * * *", async () => {
   await homeController.updateDailyVocabularies();
   console.log("每日單字已更新完畢");
 });
