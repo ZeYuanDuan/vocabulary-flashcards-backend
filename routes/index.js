@@ -16,6 +16,7 @@ const {
 } = require("../middlewares/dataHandler");
 
 const authHandler = require("../middlewares/authHandler");
+const cron = require("node-cron");
 
 router.use("/vocabularies", authHandler, vocabularies);
 router.use("/users", users);
@@ -24,16 +25,19 @@ router.post("/login", authController.postLogin);
 
 router.get("/", authHandler, homeController.getHomePage);
 
-router.get(
-  "/recommended",
-  authHandler,
-  homeController.getRecommendedVocabularies
-);
+router.get("/daily", homeController.getDailyVocabularies);
 
-const cron = require("node-cron");
-cron.schedule("00 7 * * *", async () => {
-  await homeController.fetchVocabulariesDetail(1); // ! 這裡的 1 是測試用，硬寫進來的，千萬不要這樣做。接下來要改成自動找 userId
-  console.log("fetchVocabulariesDetail has been executed.");
+// TODO 收集明日的每日單字
+cron.schedule("00 17 * * *", async () => {
+  await homeController.fetchAndStoreVocabularies();
+  await homeController.fetchVocabulariesDetail();
+  console.log("明日單字已準備完畢");
+});
+
+// TODO 一天開始時，將已經準備好的單字，存到 Redis 的 daily key，再刪除過期單字
+cron.schedule("28 17 * * *", async () => {
+  await homeController.updateDailyVocabularies();
+  console.log("每日單字已更新完畢");
 });
 
 router.get(
@@ -71,13 +75,6 @@ router.get("/mysql", authHandler, async (req, res, next) => {
   } catch (error) {
     next(error);
   }
-});
-
-// ! 測試用
-router.get("/axiosTest", async (rea, res, next) => {
-  // await homeController.fetchAndStoreVocabularies(1);
-  // await homeController.testAxiosAPI();
-  // await homeController.fetchVocabulariesDetail(1);
 });
 
 // ! 測試 Google OAuth2.0 頁面

@@ -2,7 +2,6 @@ const db = require("../models/mysql");
 const { redisClient } = require("../models/redis");
 const Vocabulary = db.Vocabulary;
 
-const util = require("util"); //! 供測試用
 const axios = require("axios");
 
 const VOC_LIMIT = 20;
@@ -76,24 +75,32 @@ const homeControllers = {
     }
   },
 
-  getRecommendedVocabularies: async (req, res, next) => {
-    const userId = req.user.id;
+  getDailyVocabularies: async (req, res, next) => {
+    const todayDailyKey = `vocabularies:daily:today`;
     try {
-      const dailyVocabularies = await getDailyVocabularies(userId);
-      res.json(dailyVocabularies);
+      const todayDailyVocabularies = await redisClient.lRange(
+        todayDailyKey,
+        0,
+        -1
+      );
+      // 解析每個元素
+      const parsedVocabularies = todayDailyVocabularies.map((vocabulary) =>
+        JSON.parse(vocabulary)
+      );
+      res.json(parsedVocabularies);
     } catch (error) {
       res.status(500).json({ error: "獲取每日內容失敗" });
       next(error);
     }
   },
 
-  // * 請求一串英文單字，組裝中文翻譯，存到 Redis 的 daily key
-  fetchAndStoreVocabularies: async (userId) => {
+  // * 請求一串英文單字，組裝中文翻譯，存到 raw
+  fetchAndStoreVocabularies: async () => {
     try {
-      const dailyKey = `user:${userId}:vocabularies:daily`;
-      const exists = await redisClient.exists(dailyKey);
+      const rawDailyKey = `vocabularies:daily:raw`;
+      const exists = await redisClient.exists(rawDailyKey);
       if (exists) {
-        await redisClient.del(dailyKey);
+        await redisClient.del(rawDailyKey);
       }
 
       const wordnikURL = generateWordnikURL();
@@ -101,20 +108,26 @@ const homeControllers = {
       const filteredData = data.map(({ id, ...keepAttrs }) => keepAttrs);
       const wordSequence = filteredData.map((obj) => obj.word);
 
-      const { data: translationData } = await axios.get(
+      const { data: translationData } = await fetchWithRetry(
         generateTranslateURL(wordSequence)
       );
-      for (let n = 0; n < translationData.length; n++) {
-        console.log(data.data.translations[n].translatedText);
-      }
+
+      const today = new Date();
+      const tomorrow = new Date(today);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+
+      const formattedDate = tomorrow.toISOString().split("T")[0];
 
       const combinedArray = filteredData.map((obj, index) => ({
-        english: obj.word,
-        chinese: translationData.data.translations[index].translatedText,
+        date: formattedDate,
+        data: {
+          english: obj.word,
+          chinese: translationData.data.translations[index].translatedText,
+        },
       }));
 
       for (const vocab of combinedArray) {
-        await redisClient.rPush(dailyKey, JSON.stringify(vocab));
+        await redisClient.rPush(rawDailyKey, JSON.stringify(vocab));
       }
     } catch (error) {
       console.error("更新 Redis 時出現錯誤：", error);
@@ -122,41 +135,63 @@ const homeControllers = {
         "errorQueue",
         JSON.stringify({
           action: "fetchAndStoreVocabularies",
-          userId,
+          key: `vocabularies:daily:EngChi`,
           dataField: combinedArray,
+          date: formattedDate,
           error: error.message,
         })
       );
     }
   },
 
-  // * 將 Daily Key 的單字，加上定義和例句，存到 FullDaily Key
-  fetchVocabulariesDetail: async (userId) => {
+  // * 將 Daily Key 的單字，加上定義和例句，存到 details
+  fetchVocabulariesDetail: async () => {
     try {
-      const dailyVocabularies = await getDailyVocabularies(userId);
-      for (const vocabulary of dailyVocabularies) {
-        const { english, chinese } = vocabulary;
-        const { data: defData } = await axios.get(
+      const detailDailyKey = `vocabularies:daily:details`;
+      const exists = await redisClient.exists(detailDailyKey);
+      if (exists) {
+        await redisClient.del(detailDailyKey);
+      }
+
+      const rawDailyKey = `vocabularies:daily:raw`;
+      const rawDailyVocab = await redisClient.lRange(rawDailyKey, 0, -1);
+      const DailyVocab = rawDailyVocab.map((voc) => JSON.parse(voc));
+
+      for (const { date, data } of DailyVocab) {
+        const { english, chinese } = data;
+        const { data: defData } = await fetchWithRetry(
           generateDefinitionURL(english)
         );
         const rawDefinition = defData.find((def) => def?.text)?.text;
-        const definition = rawDefinition.replace(/<[^>]*>/g, "");
+        const definition = rawDefinition
+          ? Array.isArray(rawDefinition)
+            ? rawDefinition.join(", ").replace(/<[^>]*>/g, "")
+            : rawDefinition.replace(/<[^>]*>/g, "")
+          : "No definition available";
 
-        const { data: exampleData } = await axios.get(
+        console.log("定義：", definition); // ! 測試用
+
+        const { data: exampleData } = await fetchWithRetry(
           generateExampleURL(english)
         );
-        const example = exampleData.text;
+        const example = exampleData.text
+          ? Array.isArray(exampleData.text)
+            ? exampleData.text.join(", ")
+            : exampleData.text
+          : "No example available";
+
+        console.log("例句：", example); // ! 測試用
 
         const vocabularyDetail = {
-          english: english,
-          chinese: chinese,
-          definition,
-          example,
+          date: date,
+          data: { english, chinese, definition, example },
         };
 
-        const fullDailyKey = `user:${userId}:vocabularies:fullDaily`;
-        await redisClient.rPush(fullDailyKey, JSON.stringify(vocabularyDetail));
-        await new Promise((resolve) => setTimeout(resolve, 1000)); // * 等一秒鐘
+        await redisClient.rPush(
+          detailDailyKey,
+          JSON.stringify(vocabularyDetail)
+        );
+        await new Promise((resolve) => setTimeout(resolve, 20000)); // * 等 20 秒
       }
     } catch (error) {
       console.error("獲取單字詳細資訊時出現錯誤：", error);
@@ -164,28 +199,64 @@ const homeControllers = {
         "errorQueue",
         JSON.stringify({
           action: "fetchVocabulariesDetail",
-          userId,
+          key: `vocabularies:daily:details`,
+          dataField: vocabularyDetail,
+          date: date,
           error: error.message,
         })
       );
     }
   },
 
-  
-  // testAxiosAPI: async () => {
-  // },
+  updateDailyVocabularies: async () => {
+    const detailDailyKey = `vocabularies:daily:details`;
+    const todayDailyKey = `vocabularies:daily:today`;
+    const tempKey = `vocabularies:daily:temp:${Date.now()}`;
+
+    try {
+      await redisClient.rename(todayDailyKey, tempKey);
+      await redisClient.rename(detailDailyKey, todayDailyKey);
+      await redisClient.expire(tempKey, 86400);
+    } catch (error) {
+      console.error("Failed to update daily vocabularies:", error);
+      const currentDate = new Date().toISOString();
+      await redisClient.rPush(
+        "errorQueue",
+        JSON.stringify({
+          action: "updateDailyVocabularies",
+          key: todayDailyKey,
+          date: currentDate,
+          error: error.message,
+        })
+      );
+    }
+  },
 };
 
-// 輔助函式：從 Redis 取得每日單字
-const getDailyVocabularies = async (userId) => {
-  try {
-    const dailyKey = `user:${userId}:vocabularies:daily`;
-    const rawVocab = await redisClient.lRange(dailyKey, 0, -1);
-    const vocabularies = rawVocab.map((voc) => JSON.parse(voc));
-    return vocabularies;
-  } catch (error) {
-    console.error(`獲取每日單字時出現錯誤: ${error.message}`);
-    throw error;
+// * 輔助函式：請求失敗後重試
+const fetchWithRetry = async (url, retries = 10) => {
+  let attempts = 0;
+  while (attempts < retries) {
+    try {
+      const response = await axios.get(url);
+      return response;
+    } catch (error) {
+      if (
+        error.response &&
+        error.response.status === 429 &&
+        attempts < retries - 1
+      ) {
+        const retryAfter = error.response.headers["retry-after"];
+        const waitTime = (retryAfter ? parseInt(retryAfter) : 60) * 1000;
+        console.log(
+          `Rate limit exceeded. Retrying after ${waitTime / 1000} seconds.`
+        );
+        await new Promise((resolve) => setTimeout(resolve, waitTime));
+        attempts++;
+      } else {
+        throw error;
+      }
+    }
   }
 };
 
