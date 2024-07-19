@@ -28,17 +28,31 @@ router.get("/", authHandler, homeController.getHomePage);
 router.get("/daily", homeController.getDailyVocabularies);
 
 // TODO 收集明日的每日單字
-cron.schedule("30 08 * * *", async () => {
-  await homeController.fetchAndStoreVocabularies();
-  await homeController.fetchVocabulariesDetail();
-  console.log("明日單字已準備完畢");
-});
+cron.schedule(
+  "45 08 * * *",
+  async () => {
+    await homeController.fetchAndStoreVocabularies();
+    await homeController.fetchVocabulariesDetail();
+    console.log("明日單字已準備完畢");
+  },
+  {
+    scheduled: true,
+    timezone: "Asia/Taipei",
+  }
+);
 
 // TODO 一天開始時，將已經準備好的單字，存到 Redis 的今日單字
-cron.schedule("40 08 * * *", async () => {
-  await homeController.updateDailyVocabularies();
-  console.log("每日單字已更新完畢");
-});
+cron.schedule(
+  "55 08 * * *",
+  async () => {
+    await homeController.updateDailyVocabularies();
+    console.log("每日單字已更新完畢");
+  },
+  {
+    scheduled: true,
+    timezone: "Asia/Taipei",
+  }
+);
 
 router.get(
   "/auth/google",
