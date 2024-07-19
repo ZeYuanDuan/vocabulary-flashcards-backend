@@ -83,7 +83,6 @@ const homeControllers = {
         0,
         -1
       );
-      // 解析每個元素
       const parsedVocabularies = todayDailyVocabularies.map((vocabulary) =>
         JSON.parse(vocabulary)
       );
