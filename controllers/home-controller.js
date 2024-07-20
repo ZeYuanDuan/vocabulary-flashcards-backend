@@ -1,6 +1,8 @@
 const db = require("../models/mysql");
 const { redisClient } = require("../models/redis");
 const Vocabulary = db.Vocabulary;
+const axios = require("axios"); // Added axios import since it's used in the code
+const moment = require("moment-timezone");
 
 const {
   generateWordnikURL,
@@ -26,7 +28,7 @@ const homeControllers = {
   },
 
   getDailyVocabularies: async (req, res, next) => {
-    const todayDailyKey = `vocabularies:daily:today`;
+    const todayDailyKey = `daily:today`;
     try {
       const todayDailyVocabularies = await redisClient.lRange(
         todayDailyKey,
@@ -46,7 +48,7 @@ const homeControllers = {
   // * 請求一串英文單字，組裝中文翻譯，存到 raw
   fetchAndStoreVocabularies: async () => {
     try {
-      const rawDailyKey = `vocabularies:daily:raw`;
+      const rawDailyKey = `daily:raw`;
       const exists = await redisClient.exists(rawDailyKey);
       if (exists) {
         await redisClient.del(rawDailyKey);
@@ -61,11 +63,10 @@ const homeControllers = {
         generateTranslateURL(wordSequence)
       );
 
-      const today = new Date();
-      const tomorrow = new Date(today);
-      tomorrow.setDate(tomorrow.getDate() + 1);
+      const today = moment().tz("Asia/Taipei");
+      const tomorrow = moment(today).add(1, "day");
 
-      const formattedDate = tomorrow.toISOString().split("T")[0];
+      const formattedDate = tomorrow.format("YYYY-MM-DD");
 
       const combinedArray = filteredData.map((obj, index) => ({
         date: formattedDate,
@@ -84,7 +85,7 @@ const homeControllers = {
         "errorQueue",
         JSON.stringify({
           action: "fetchAndStoreVocabularies",
-          key: `vocabularies:daily:EngChi`,
+          key: `daily:EngChi`,
           dataField: combinedArray,
           date: formattedDate,
           error: error.message,
@@ -96,13 +97,13 @@ const homeControllers = {
   // * 將 Daily Key 的單字，加上定義和例句，存到 details
   fetchVocabulariesDetail: async () => {
     try {
-      const detailDailyKey = `vocabularies:daily:details`;
+      const detailDailyKey = `daily:details`;
       const exists = await redisClient.exists(detailDailyKey);
       if (exists) {
         await redisClient.del(detailDailyKey);
       }
 
-      const rawDailyKey = `vocabularies:daily:raw`;
+      const rawDailyKey = `daily:raw`;
       const rawDailyVocab = await redisClient.lRange(rawDailyKey, 0, -1);
       const DailyVocab = rawDailyVocab.map((voc) => JSON.parse(voc));
 
@@ -148,7 +149,7 @@ const homeControllers = {
         "errorQueue",
         JSON.stringify({
           action: "fetchVocabulariesDetail",
-          key: `vocabularies:daily:details`,
+          key: `daily:details`,
           dataField: vocabularyDetail,
           date: date,
           error: error.message,
@@ -158,9 +159,9 @@ const homeControllers = {
   },
 
   updateDailyVocabularies: async () => {
-    const detailDailyKey = `vocabularies:daily:details`;
-    const todayDailyKey = `vocabularies:daily:today`;
-    const tempKey = `vocabularies:daily:temp:${Date.now()}`;
+    const detailDailyKey = `daily:details`;
+    const todayDailyKey = `daily:today`;
+    const tempKey = `daily:temp:${Date.now()}`;
 
     try {
       await redisClient.rename(todayDailyKey, tempKey);
@@ -168,7 +169,7 @@ const homeControllers = {
       await redisClient.expire(tempKey, 86400);
     } catch (error) {
       console.error("Failed to update daily vocabularies:", error);
-      const currentDate = new Date().toISOString();
+      const currentDate = moment().tz("Asia/Taipei").toISOString();
       await redisClient.rPush(
         "errorQueue",
         JSON.stringify({
