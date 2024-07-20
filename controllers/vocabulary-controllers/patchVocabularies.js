@@ -15,9 +15,6 @@ async function patchVocabularies(req, res, next) {
   };
 
   const userId = req.user.id;
-
-  const newField = { id, ...updateField, createdAt: new Date() };
-
   const key = `user:${userId}:vocabularies:${id}`;
   const userVocStorageKey = `user:${userId}:vocabularies:storage`;
 
@@ -30,6 +27,7 @@ async function patchVocabularies(req, res, next) {
         where: { id, userId },
       });
 
+      const newField = { id, ...updateField, createdAt: new Date() };
       await updateRedis(key, filterUndefined(newField));
     } else {
       await updateRedis(key, filterUndefined(updateField));
@@ -37,13 +35,10 @@ async function patchVocabularies(req, res, next) {
       setImmediate(async () => {
         try {
           await Vocabulary.update(filterUndefined(updateField), {
-            where: {
-              id,
-              userId,
-            },
+            where: { id, userId },
           });
         } catch (mySQLError) {
-          console.error("更新 MySQL 出現錯誤：", error);
+          console.error("更新 MySQL 出現錯誤：", mySQLError);
           await redisClient.rPush(
             "errorQueue",
             JSON.stringify({
@@ -63,6 +58,15 @@ async function patchVocabularies(req, res, next) {
     });
   } catch (error) {
     console.error("更新 Redis 出現錯誤：", error);
+    await redisClient.rPush(
+      "errorQueue",
+      JSON.stringify({
+        action: "patchVocabularies",
+        userId,
+        vocabularyId: id,
+        error: error.message,
+      })
+    );
     next(error);
   }
 }
