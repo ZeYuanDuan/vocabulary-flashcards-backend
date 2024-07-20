@@ -2,6 +2,7 @@ const db = require("../../models/mysql");
 const { redisClient } = require("../../models/redis");
 const Vocabulary = db.Vocabulary;
 const Vocabulary_Tag = db.Vocabulary_Tag;
+const Tag = db.Tag;
 
 async function deleteVocabularies(req, res, next) {
   const { id } = req.params;
@@ -36,6 +37,7 @@ async function deleteVocabularies(req, res, next) {
     setImmediate(async () => {
       try {
         await deleteVocabularyFromMySQL(userId, id);
+        await checkAndDeleteEmptyTags(userId, id);
       } catch (mySQLError) {
         await logErrorToRedis("deleteVocabularies", userId, id, mySQLError);
       }
@@ -84,6 +86,40 @@ const updateRedisAfterDeletion = async (userId, vocabularyId) => {
     const tagId = vt.tagId;
     const tagKey = `user:${userId}:tags:${tagId}`;
     await redisClient.sRem(tagKey, vocabularyId.toString());
+  }
+};
+
+// 輔助函數：檢查並刪除沒有單字的標籤
+const checkAndDeleteEmptyTags = async (userId, vocabularyId) => {
+  const vocabularyTags = await Vocabulary_Tag.findAll({
+    where: { vocabularyId },
+    attributes: ["tagId"],
+  });
+
+  for (const vt of vocabularyTags) {
+    const tagId = vt.tagId;
+    const vocabularyCount = await Vocabulary_Tag.count({
+      where: { tagId },
+    });
+
+    if (vocabularyCount === 0) {
+      await Tag.destroy({
+        where: { id: tagId, userId },
+      });
+
+      // 刪除 Redis 中的標籤
+      const tagKey = `user:${userId}:tags:${tagId}`;
+      const tagDetailsKey = `user:${userId}:tags:${tagId}:details`;
+      const vocabularyIdsKey = `user:${userId}:tags:${tagId}`;
+
+      await redisClient.del(tagKey);
+      await redisClient.del(tagDetailsKey);
+      await redisClient.del(vocabularyIdsKey);
+
+      // 從用戶標籤列表中移除標籤ID
+      const userTagsKey = `user:${userId}:tags`;
+      await redisClient.sRem(userTagsKey, tagId.toString());
+    }
   }
 };
 

@@ -49,7 +49,7 @@ async function postVocabularies(req, res, next) {
       // 更新 Redis 標籤資料
       const tagKey = `user:${userId}:tags:${tag.id}`;
       const tagDetailsKey = `user:${userId}:tags:${tag.id}:details`;
-      await redisClient.hSet(tagDetailsKey, "id", tag.id.toString());
+      await redisClient.hSet(tagDetailsKey, "id", tag.id);
       await redisClient.hSet(tagDetailsKey, "name", tag.name);
       await redisClient.hSet(tagDetailsKey, "userId", tag.userId.toString());
       await redisClient.sAdd(tagKey, id.toString());
