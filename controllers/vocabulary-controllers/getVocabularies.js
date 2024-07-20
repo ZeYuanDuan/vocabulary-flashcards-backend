@@ -90,18 +90,4 @@ const fetchAndCacheVocabularyFromMySQL = async (id, userId, vocabularyKey) => {
   return vocabulary;
 };
 
-// 輔助函數：統一單字資料類型
-// * 目前看來資料類型相符，暫且不需要使用到此函數
-// const normalize = (vocabulary) => {
-//   return {
-//     id: parseInt(vocabulary.id, 10),
-//     english: vocabulary.english.toString(),
-//     chinese: vocabulary.chinese ? vocabulary.chinese.toString() : null,
-//     example: vocabulary.example ? vocabulary.example.toString() : null,
-//     definition: vocabulary.definition ? vocabulary.definition.toString() : null,
-//     createdAt: new Date(vocabulary.createdAt),
-//     updatedAt: new Date(vocabulary.updatedAt),
-//   };
-// };
-
 module.exports = getVocabularies;
