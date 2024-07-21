@@ -119,15 +119,6 @@ const fetchAndCacheVocabularyFromMySQL = async (id, userId, vocabularyKey) => {
       await redisClient.hSet(vocabularyKey, field, JSON.stringify(value));
     }
 
-    // ! 這段會造成錯誤
-    // const tags = dataValue.tags.map((tag) => USER_TAG_PREFIX + tag.name);
-    // console.log(`tags`, tags); // ! 測試用
-    // const tagsKey = `user:${userId}:vocabularies:${id}:tags`;
-    // if (tags.length > 0) {
-    //   await redisClient.sAdd(tagsKey, ...tags);
-    // }
-    // ! ==================
-
     return dataValue;
   } catch (mySQLError) {
     console.error("更新 MySQL 出現錯誤：", mySQLError);
