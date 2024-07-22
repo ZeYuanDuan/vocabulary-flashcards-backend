@@ -14,6 +14,12 @@ module.exports = (sequelize, DataTypes) => {
         foreignKey: "userId",
         as: "user",
       });
+      Vocabulary.belongsToMany(models.Tag, {
+        through: models.Vocabulary_Tag,
+        foreignKey: "vocabularyId",
+        otherKey: "tagId",
+        as: "tags",
+      });
     }
   }
   Vocabulary.init(
