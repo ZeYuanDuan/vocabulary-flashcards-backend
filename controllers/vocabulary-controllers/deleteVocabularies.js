@@ -9,126 +9,69 @@ async function deleteVocabularies(req, res, next) {
   const userId = req.user.id;
 
   try {
-    const redisExists = await checkRedisExists(userId, id);
+    // 1. 在 MySQL 的 Tag 資料表中，找到該單字所屬的所有標籤 id (TagIds)
+    const tagIdsResult = await Vocabulary_Tag.findAll({
+      where: { vocabularyId: id },
+      attributes: ["tagId"],
+    });
 
-    if (!redisExists) {
-      const mysqlDeleteResult = await deleteVocabularyFromMySQL(userId, id);
+    const tagIds = tagIdsResult.map((vt) => vt.tagId);
 
-      if (mysqlDeleteResult) {
-        await updateRedisAfterDeletion(userId, id);
-        const vocStorage = await getRedisVocabularyStorage(userId);
-        return res.status(200).json({
-          message: `單字 ID ${id} 刪除成功`,
-          vocStorage,
-        });
-      } else {
-        return res.status(404).json({ message: `找不到單字 ID ${id}` });
+    // 2. (背景執行) 在 MySQL 的 Vocabulary 資料表中，刪除該單字
+    // 3. (背景執行) 在 MySQL 的 Vocabulary_Tags 資料表中，找到所有 VocabularyId 和 單字 id 相符的欄位，將其全部刪除。
+    // 4. (背景執行) 在 MySQL 檢查在 Vocabulary_Tags 資料表中，TagIds 中的 TagId 是否還有對應欄位，如果沒有，回到 Tags 將該 TagId 對應的欄位刪除，並且到 `user:${userId}:tags` 當中將該 TagId 刪除。
+    setImmediate(async () => {
+      try {
+        await Vocabulary.destroy({ where: { id, userId } });
+        await Vocabulary_Tag.destroy({ where: { vocabularyId: id } });
+
+        for (const tagId of tagIds) {
+          const remaining = await Vocabulary_Tag.count({ where: { tagId } });
+          if (remaining === 0) {
+            await Tag.destroy({ where: { id: tagId } });
+            const userTagsKey = `user:${userId}:tags`;
+            await redisClient.sRem(userTagsKey, tagId.toString());
+          }
+        }
+      } catch (error) {
+        await logErrorToRedis("deleteVocabularies", userId, id, error);
+      }
+    });
+
+    // 5. 在 Redis 當中，刪除 `user:${userId}:vocabularies:${vocabularyId}` (如果有)
+    const key = `user:${userId}:vocabularies:${id}`;
+    await redisClient.del(key);
+
+    // 6. 從 `user:${userId}:vocabularies` 當中刪除該單字的 id
+    const userVocabulariesKey = `user:${userId}:vocabularies`;
+    await redisClient.lRem(userVocabulariesKey, 0, id.toString());
+
+    // 7. 將 `user:${userId}:vocabularies:storage` 的數量減一
+    const userVocStorageKey = `user:${userId}:vocabularies:storage`;
+    await redisClient.decr(userVocStorageKey);
+
+    // 8. 對所有 tagIds 中的 tagId，在 `user:${userId}:tags:${tagId}` 將該單字 Id 刪除。如果此時這個 key 已經沒有任何成員，將該 key 已經所有子鍵全數刪除
+    for (const tagId of tagIds) {
+      const tagKey = `user:${userId}:tags:${tagId}`;
+      await redisClient.sRem(tagKey, id.toString());
+      const membersCount = await redisClient.sCard(tagKey);
+      if (membersCount === 0) {
+        await redisClient.del(tagKey);
+        const tagDetailsKey = `user:${userId}:tags:${tagId}:details`;
+        const vocabularyIdsKey = `user:${userId}:tags:${tagId}`;
+        await redisClient.del(tagDetailsKey);
+        await redisClient.del(vocabularyIdsKey);
       }
     }
 
-    await deleteVocabularyFromRedis(userId, id);
-    const vocStorage = await getRedisVocabularyStorage(userId);
-
     res.status(200).json({
       message: `單字 ID ${id} 刪除成功`,
-      vocStorage,
-    });
-
-    setImmediate(async () => {
-      try {
-        await deleteVocabularyFromMySQL(userId, id);
-        await checkAndDeleteEmptyTags(userId, id);
-      } catch (mySQLError) {
-        await logErrorToRedis("deleteVocabularies", userId, id, mySQLError);
-      }
     });
   } catch (error) {
     await logErrorToRedis("deleteVocabularies", userId, id, error);
     next(error);
   }
 }
-
-// 輔助函數：檢查 Redis 中是否存在
-const checkRedisExists = async (userId, vocabularyId) => {
-  const key = `user:${userId}:vocabularies:${vocabularyId}`;
-  return await redisClient.exists(key);
-};
-
-// 輔助函數：從 Redis 刪除單字
-const deleteVocabularyFromRedis = async (userId, vocabularyId) => {
-  const key = `user:${userId}:vocabularies:${vocabularyId}`;
-  const userVocabulariesKey = `user:${userId}:vocabularies`;
-
-  await redisClient.del(key);
-  await redisClient.lRem(userVocabulariesKey, 0, vocabularyId.toString());
-  await updateRedisAfterDeletion(userId, vocabularyId);
-};
-
-// 輔助函數：從 MySQL 刪除單字
-const deleteVocabularyFromMySQL = async (userId, vocabularyId) => {
-  return await Vocabulary.destroy({
-    where: { id: vocabularyId, userId },
-  });
-};
-
-// 輔助函數：更新 Redis 刪除後的相關資料
-const updateRedisAfterDeletion = async (userId, vocabularyId) => {
-  const userVocStorageKey = `user:${userId}:vocabularies:storage`;
-
-  await redisClient.decr(userVocStorageKey);
-
-  // 刪除和該單字相關的標籤資料
-  const vocabularyTags = await Vocabulary_Tag.findAll({
-    where: { vocabularyId },
-  });
-
-  for (const vt of vocabularyTags) {
-    const tagId = vt.tagId;
-    const tagKey = `user:${userId}:tags:${tagId}`;
-    await redisClient.sRem(tagKey, vocabularyId.toString());
-  }
-};
-
-// 輔助函數：檢查並刪除沒有單字的標籤
-const checkAndDeleteEmptyTags = async (userId, vocabularyId) => {
-  const vocabularyTags = await Vocabulary_Tag.findAll({
-    where: { vocabularyId },
-    attributes: ["tagId"],
-  });
-
-  for (const vt of vocabularyTags) {
-    const tagId = vt.tagId;
-    const vocabularyCount = await Vocabulary_Tag.count({
-      where: { tagId },
-    });
-
-    if (vocabularyCount === 0) {
-      await Tag.destroy({
-        where: { id: tagId, userId },
-      });
-
-      // 刪除 Redis 中的標籤
-      const tagKey = `user:${userId}:tags:${tagId}`;
-      const tagDetailsKey = `user:${userId}:tags:${tagId}:details`;
-      const vocabularyIdsKey = `user:${userId}:tags:${tagId}`;
-
-      await redisClient.del(tagKey);
-      await redisClient.del(tagDetailsKey);
-      await redisClient.del(vocabularyIdsKey);
-
-      // 從用戶標籤列表中移除標籤ID
-      const userTagsKey = `user:${userId}:tags`;
-      await redisClient.sRem(userTagsKey, tagId.toString());
-    }
-  }
-};
-
-// 輔助函數：獲取 Redis 中的單字存儲數量
-const getRedisVocabularyStorage = async (userId) => {
-  const userVocStorageKey = `user:${userId}:vocabularies:storage`;
-  const vocStorage = await redisClient.get(userVocStorageKey);
-  return parseInt(vocStorage, 10);
-};
 
 // 輔助函數：記錄錯誤到 Redis
 const logErrorToRedis = async (action, userId, vocabularyId, error) => {

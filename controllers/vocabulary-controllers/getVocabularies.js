@@ -1,3 +1,4 @@
+const { where } = require("sequelize");
 const db = require("../../models/mysql");
 const { redisClient } = require("../../models/redis");
 const Vocabulary = db.Vocabulary;
@@ -30,7 +31,10 @@ async function getVocabularies(req, res, next) {
         const vocabulariesKey = `user:${userId}:vocabularies`;
         const vocabularies = await Promise.all(
           vocabularyIds.map(async (id) => {
-            await redisClient.lPush(vocabulariesKey, id);
+            const isMember = await redisClient.lPos(vocabulariesKey, id);
+            if (isMember === null) {
+              await redisClient.lPush(vocabulariesKey, id);
+            } // * 如果單字 id 不在快取中，就加入快取
             const vocabularyKey = `user:${userId}:vocabularies:${id}`;
             const exists = await redisClient.exists(vocabularyKey);
             if (exists) {
@@ -155,22 +159,19 @@ const fetchAndCacheTagsAndVocabulariesFromMySQL = async (userId) => {
       attributes: { exclude: ["userId"] },
     });
 
-    // ! 找出來的無標籤單字，放入結果中，並以「NoTag」作為標籤名稱
-    // TODO 無標籤單字，應該要被存到 __NoTag 這個標籤之下
+    // ! 無標籤單字，應該要被存到 __NoTag 這個標籤之下
     if (noTagVocabularies.length > 0) {
-      results.push({
-        tagId: null,
-        name: NO_TAG_NAME,
-        vocabularies: noTagVocabularies.map((vocabulary) => ({
-          vocId: vocabulary.id,
-          english: vocabulary.english,
-          chinese: vocabulary.chinese,
-          example: vocabulary.example,
-          definition: vocabulary.definition,
-          createdAt: vocabulary.createdAt,
-          updatedAt: vocabulary.updatedAt,
-        })),
+      const [tag, created] = await Tag.findOrCreate({
+        where: { name: NO_TAG_NAME, userId },
       });
+      await Promise.all(
+        noTagVocabularies.map(async (vocabulary) => {
+          await Vocabulary_Tag.create({
+            tagId: tag.id,
+            vocabularyId: vocabulary.id,
+          });
+        })
+      );
     }
 
     // ! 找出該使用者之下，所有的標籤，並透過中介表，找到標籤下的單字，作為標籤的屬性

@@ -29,7 +29,7 @@ router.get("/daily", homeController.getDailyVocabularies);
 
 // TODO 收集明日的每日單字
 cron.schedule(
-  "10 00 * * *",
+  "40 08 * * *",
   async () => {
     await homeController.fetchAndStoreVocabularies();
     await homeController.fetchVocabulariesDetail();
@@ -43,7 +43,7 @@ cron.schedule(
 
 // TODO 一天開始時，將已經準備好的單字，存到 Redis 的今日單字
 cron.schedule(
-  "00 00 * * *",
+  "50 08 * * *",
   async () => {
     await homeController.updateDailyVocabularies();
     console.log("每日單字已更新完畢");

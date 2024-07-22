@@ -29,6 +29,7 @@ const homeControllers = {
 
   getDailyVocabularies: async (req, res, next) => {
     const todayDailyKey = `daily:today`;
+
     try {
       const todayDailyVocabularies = await redisClient.lRange(
         todayDailyKey,
@@ -162,6 +163,11 @@ const homeControllers = {
     const detailDailyKey = `daily:details`;
     const todayDailyKey = `daily:today`;
     const tempKey = `daily:temp:${Date.now()}`;
+    if (!(await redisClient.exists(todayDailyKey))) {
+      await redisClient.lPush(todayDailyKey, '["No data available"]');
+    } else if (!(await redisClient.exists(detailDailyKey))) {
+      await redisClient.lPush(todayDailyKey, '["No data available"]');
+    }
 
     try {
       await redisClient.rename(todayDailyKey, tempKey);
