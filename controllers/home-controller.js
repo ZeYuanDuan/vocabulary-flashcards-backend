@@ -166,7 +166,7 @@ const homeControllers = {
     if (!(await redisClient.exists(todayDailyKey))) {
       await redisClient.lPush(todayDailyKey, '["No data available"]');
     } else if (!(await redisClient.exists(detailDailyKey))) {
-      await redisClient.lPush(todayDailyKey, '["No data available"]');
+      await redisClient.lPush(detailDailyKey, '["No data available"]');
     }
 
     try {

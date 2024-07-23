@@ -1,4 +1,3 @@
-const { where } = require("sequelize");
 const db = require("../../models/mysql");
 const { redisClient } = require("../../models/redis");
 const Vocabulary = db.Vocabulary;
@@ -8,6 +7,8 @@ const Vocabulary_Tag = db.Vocabulary_Tag;
 const SYSTEM_TAG_PREFIX = "__";
 const USER_TAG_PREFIX = "user_";
 const NO_TAG_NAME = `${SYSTEM_TAG_PREFIX}NoTag`;
+
+// TODO NO_TAG_NAME 要放在最前面，即便是空值，也不應將此標籤刪除
 
 async function getVocabularies(req, res, next) {
   const perfStart = performance.now(); // ! 測試用
@@ -49,7 +50,7 @@ async function getVocabularies(req, res, next) {
           })
         );
         results.push({
-          tagId: tagDetails.id,
+          tagId: Number(tagDetails.id),
           name: tagDetails.name.replace(USER_TAG_PREFIX, ""),
           vocabularies: vocabularies.map((voc) => ({
             vocId: voc.id,
@@ -64,6 +65,14 @@ async function getVocabularies(req, res, next) {
       }
     } else {
       results = await fetchAndCacheTagsAndVocabulariesFromMySQL(userId);
+    }
+
+    // 確保 NO_TAG_NAME 的標籤總是出現在第一個位置
+    // ! 雖然這個做法，增加了時間複雜度，但我不太想再改架構了
+    const noTagIndex = results.findIndex((tag) => tag.name === NO_TAG_NAME);
+    if (noTagIndex !== -1) {
+      const [noTag] = results.splice(noTagIndex, 1);
+      results.unshift(noTag);
     }
 
     const userVocStorageKey = `user:${userId}:vocabularies:storage`;
@@ -207,7 +216,7 @@ const fetchAndCacheTagsAndVocabulariesFromMySQL = async (userId) => {
     // 更新 Redis 快取
     // ! 將找到的標籤 id，存到 Redis 當中標籤快取。
     const cachedTagsKey = `user:${userId}:tags`;
-    const tagIds = tags.map((tag) => tag.id.toString()); // ? 把 toString() 拿掉
+    const tagIds = tags.map((tag) => tag.id.toString());
     console.log("tagIds，找到的標籤 ID", tagIds); // ! 測試用
     if (tagIds.length > 0) {
       for (const tagId of tagIds) {

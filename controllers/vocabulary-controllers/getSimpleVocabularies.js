@@ -62,8 +62,13 @@ async function getSimpleVocabularies(req, res, next) {
       results = await fetchAndCacheVocabulariesFromMySQL(userId);
     }
 
+    const userVocStorageKey = `user:${userId}:vocabularies:storage`;
+    const userVocStorage = await redisClient.get(userVocStorageKey);
+
     res.status(200).json({
       status: "success",
+      userId: userId,
+      vocStorage: parseInt(userVocStorage, 10),
       data: results,
     });
   } catch (error) {
@@ -96,7 +101,7 @@ const fetchAndCacheVocabulariesFromMySQL = async (userId) => {
         for (const [field, value] of Object.entries(voc)) {
           await redisClient.hSet(vocabularyKey, field, JSON.stringify(value));
         }
-        await redisClient.sAdd(vocabulariesKey, voc.id.toString());
+        await redisClient.rPush(vocabulariesKey, voc.id.toString());
       })
     );
     return results;
