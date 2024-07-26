@@ -33,7 +33,8 @@ async function postVocabularies(req, res, next) {
     const mysqlField = await Vocabulary.create(dataField);
     const { id } = mysqlField;
     const { userId, ...dataWithoutUserId } = dataField;
-    const redisFieldWithId = { id, ...dataWithoutUserId };
+    const redisFieldWithId = { id, ...dataWithoutUserId }; // ! 這步出現 undefined 的問題
+    console.log("redisFieldWithId: ", redisFieldWithId); // ! 測試用
 
     // 處理標籤
     let tagList =
