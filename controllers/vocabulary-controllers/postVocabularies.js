@@ -37,7 +37,7 @@ async function postVocabularies(req, res, next) {
 
     // 處理標籤
     let tagList =
-      tags && tags.length > 0
+      Array.isArray(tags) && tags.length > 0
         ? tags.map((tag) => USER_TAG_PREFIX + tag)
         : [`${SYSTEM_TAG_PREFIX}NoTag`];
     for (const tagName of tagList) {
@@ -109,7 +109,6 @@ async function postVocabularies(req, res, next) {
       JSON.stringify({
         action: "postVocabularies",
         userId,
-        dataField: redisFieldWithId,
         error: error.message,
       })
     );
