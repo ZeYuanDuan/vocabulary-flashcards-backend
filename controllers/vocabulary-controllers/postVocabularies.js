@@ -35,7 +35,6 @@ async function postVocabularies(req, res, next) {
     const { userId, ...dataWithoutUserId } = dataField;
     const redisFieldWithId = { id, ...dataWithoutUserId };
     console.log("redisFieldWithId: ", redisFieldWithId); // ! 測試用
-    console.log("Tags：", tags); // ! 測試用
 
     // 處理標籤
     let tagList =
@@ -43,6 +42,7 @@ async function postVocabularies(req, res, next) {
         ? tags.map((tag) => USER_TAG_PREFIX + tag)
         : [`${SYSTEM_TAG_PREFIX}NoTag`];
     for (const tagName of tagList) {
+      console.log("標籤", tagName, typeof tagName); // ! 測試用
       let tag = await Tag.findOne({
         where: { name: tagName, userId: userId },
       });
