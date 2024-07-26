@@ -33,8 +33,9 @@ async function postVocabularies(req, res, next) {
     const mysqlField = await Vocabulary.create(dataField);
     const { id } = mysqlField;
     const { userId, ...dataWithoutUserId } = dataField;
-    const redisFieldWithId = { id, ...dataWithoutUserId }; // ! 這步出現 undefined 的問題
+    const redisFieldWithId = { id, ...dataWithoutUserId };
     console.log("redisFieldWithId: ", redisFieldWithId); // ! 測試用
+    console.log("Tags：", tags); // ! 測試用
 
     // 處理標籤
     let tagList =
@@ -47,6 +48,7 @@ async function postVocabularies(req, res, next) {
       });
       if (!tag) {
         tag = await Tag.create({ name: tagName, userId: userId });
+        console.log("新建的標籤：", tag); // ! 測試用
       }
       await Vocabulary_Tag.create({ tagId: tag.id, vocabularyId: id });
 
