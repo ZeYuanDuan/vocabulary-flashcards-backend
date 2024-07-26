@@ -48,9 +48,9 @@ async function postVocabularies(req, res, next) {
       });
       if (!tag) {
         tag = await Tag.create({ name: tagName, userId: userId });
-        console.log("新建的標籤：", tag); // ! 測試用
       }
       await Vocabulary_Tag.create({ tagId: tag.id, vocabularyId: id });
+      console.log("找到的資料庫標籤：", tag); // ! 測試用
 
       // 更新 Redis 標籤資料
       const tagKey = `user:${userId}:tags:${tag.id}`;
