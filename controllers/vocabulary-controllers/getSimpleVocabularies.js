@@ -48,7 +48,7 @@ async function getSimpleVocabularies(req, res, next) {
                 JSON.stringify({
                   action: "fetchAndCacheVocabulariesFromMySQL",
                   userId,
-                  error: error.message,
+                  error: `找不到 ID 為 ${vocId} 的單字`,
                 })
               );
               throw Error(`找不到 ID 為 ${vocId} 的單字`);

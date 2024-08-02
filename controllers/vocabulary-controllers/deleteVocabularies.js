@@ -59,8 +59,10 @@ async function deleteVocabularies(req, res, next) {
         await redisClient.del(tagKey);
         const tagDetailsKey = `user:${userId}:tags:${tagId}:details`;
         const vocabularyIdsKey = `user:${userId}:tags:${tagId}`;
+        const userTagsKey = `user:${userId}:tags`;
         await redisClient.del(tagDetailsKey);
         await redisClient.del(vocabularyIdsKey);
+        await redisClient.sRem(userTagsKey, tagId.toString());
       }
     }
 
