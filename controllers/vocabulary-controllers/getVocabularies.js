@@ -52,15 +52,17 @@ async function getVocabularies(req, res, next) {
         results.push({
           tagId: Number(tagDetails.id),
           name: tagDetails.name.replace(USER_TAG_PREFIX, ""),
-          vocabularies: vocabularies.map((voc) => ({
-            vocId: voc.id,
-            english: voc.english,
-            chinese: voc.chinese,
-            example: voc.example,
-            definition: voc.definition,
-            createdAt: voc.createdAt,
-            updatedAt: voc.updatedAt,
-          })),
+          vocabularies: vocabularies
+            .filter((voc) => voc !== null) // 過濾掉可能的 null 值
+            .map((voc) => ({
+              vocId: voc.id,
+              english: voc.english,
+              chinese: voc.chinese,
+              example: voc.example,
+              definition: voc.definition,
+              createdAt: voc.createdAt,
+              updatedAt: voc.updatedAt,
+            })),
         });
       }
     } else {
