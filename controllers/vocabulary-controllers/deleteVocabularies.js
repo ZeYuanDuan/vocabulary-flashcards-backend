@@ -27,6 +27,7 @@ async function deleteVocabularies(req, res, next) {
 
         for (const tagId of tagIds) {
           const remaining = await Vocabulary_Tag.count({ where: { tagId } });
+          console.log("測試還剩下多少單字：", remaining); // ! 測試用
           if (remaining === 0) {
             await Tag.destroy({ where: { id: tagId } });
             const userTagsKey = `user:${userId}:tags`;
