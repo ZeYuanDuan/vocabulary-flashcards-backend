@@ -15,13 +15,20 @@ const {
 
 const homeControllers = {
   getHomePage: async (req, res, next) => {
-    console.log("反序列化拿到的東西：", req.user); // ! 測試用
     try {
       const { name, id } = req.user;
-      const vocStorage = await Vocabulary.count({
+
+      const userVocabulariesCountKey = `user:${id}:vocabularies:count`;
+      const vocabulariesCount = await Vocabulary.count({
         where: { userId: id },
       });
-      return res.json({ name, vocStorage });
+      await redisClient.set(
+        userVocabulariesCountKey,
+        vocabulariesCount,
+        "EX",
+        3600
+      );
+      return res.json({ name, vocStorage: vocabulariesCount });
     } catch (error) {
       next(error);
     }
