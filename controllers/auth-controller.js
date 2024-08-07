@@ -31,7 +31,7 @@ const authControllers = {
           where: { userId: id },
         });
 
-        await syncVocabulariesToRedis(user.userId); // ! 等 Redis 更新完畢
+        // await syncVocabulariesToRedis(user.userId); // ! 等 Redis 更新完畢
 
         res.json({
           message: info.success_message,
@@ -63,7 +63,7 @@ const authControllers = {
           where: { userId: id },
         });
 
-        await syncVocabulariesToRedis(user.userId); // ! 等 Redis 更新完畢
+        // await syncVocabulariesToRedis(user.userId); // ! 等 Redis 更新完畢
 
         res.json({
           message: info.success_message,
