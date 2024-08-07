@@ -9,8 +9,6 @@ const USER_TAG_PREFIX = "user_";
 const NO_TAG_NAME = `${SYSTEM_TAG_PREFIX}NoTag`;
 
 async function getVocabularies(req, res, next) {
-  const perfStart = performance.now(); // ! 測試用
-
   const userId = req.user.id;
 
   try {
@@ -59,9 +57,6 @@ async function getVocabularies(req, res, next) {
       vocStorage: Number(vocabulariesCount),
       data: results,
     });
-
-    const perfEnd = performance.now(); // ! 測試用
-    console.log(`Redis 讀取耗時: ${perfEnd - perfStart} ms`); // ! 測試用
   } catch (error) {
     console.error("顯示 Redis 單字資料出現錯誤", error);
     await redisClient.rPush(

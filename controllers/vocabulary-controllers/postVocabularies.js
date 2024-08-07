@@ -34,9 +34,10 @@ async function postVocabularies(req, res, next) {
     const { id } = mysqlField;
 
     // 處理標籤
+    const uniqueTags = [...new Set(tags)];
     let tagList =
-      Array.isArray(tags) && tags.length > 0
-        ? tags.map((tag) => USER_TAG_PREFIX + tag)
+      Array.isArray(uniqueTags) && uniqueTags.length > 0
+        ? uniqueTags.map((tag) => USER_TAG_PREFIX + tag)
         : [NO_TAG_NAME];
     for (const tagName of tagList) {
       let tag = await Tag.findOne({

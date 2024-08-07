@@ -39,28 +39,44 @@ async function patchVocabularies(req, res, next) {
     const oldTags = await Vocabulary_Tag.findAll({
       where: { vocabularyId: id },
     });
-    for (const oldTag of oldTags) {
-      // * 刪除 Vocabulary_Tag 資料
+    if (oldTags.length > 0) {
+      const tagIds = oldTags.map((tag) => tag.tagId);
       await Vocabulary_Tag.destroy({
-        where: { tagId: oldTag.id, vocabularyId: id },
+        where: {
+          tagId: tagIds,
+          vocabularyId: id,
+        },
       });
+
+      // 檢查每個 tagId 是否在 Vocabulary_Tag 表中仍有對應的欄位
+      for (const tagId of tagIds) {
+        const tagCount = await Vocabulary_Tag.count({
+          where: { tagId: tagId },
+        });
+        if (tagCount === 0) {
+          await Tag.destroy({
+            where: { id: tagId },
+          });
+        }
+      }
     }
 
-    if (tags) {
-      let tagList =
-        Array.isArray(tags) && tags.length > 0
-          ? tags.map((tag) => USER_TAG_PREFIX + tag)
-          : [NO_TAG_NAME];
+    // * 處理標籤
+    const uniqueTags = [...new Set(tags)];
 
-      for (const tagName of tagList) {
-        let tag = await Tag.findOne({
-          where: { name: tagName, userId: userId },
-        });
-        if (!tag) {
-          tag = await Tag.create({ name: tagName, userId: userId });
-        }
-        await Vocabulary_Tag.create({ tagId: tag.id, vocabularyId: id });
+    let tagList =
+      Array.isArray(uniqueTags) && uniqueTags.length > 0
+        ? uniqueTags.map((tag) => USER_TAG_PREFIX + tag)
+        : [NO_TAG_NAME];
+
+    for (const tagName of tagList) {
+      let tag = await Tag.findOne({
+        where: { name: tagName, userId: userId },
+      });
+      if (!tag) {
+        tag = await Tag.create({ name: tagName, userId: userId });
       }
+      await Vocabulary_Tag.create({ tagId: tag.id, vocabularyId: id });
     }
 
     const userVocabulariesKey = `user:${userId}:vocabularies`;

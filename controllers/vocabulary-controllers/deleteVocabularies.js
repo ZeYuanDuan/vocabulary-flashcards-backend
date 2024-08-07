@@ -9,21 +9,33 @@ async function deleteVocabularies(req, res, next) {
   const userId = req.user.id;
 
   try {
-    const tagIdsResult = await Vocabulary_Tag.findAll({
+    const vocabulary = await Vocabulary.findOne({ where: { id, userId } });
+    if (!vocabulary) {
+      return res.status(404).json({ message: `找不到單字 ID ${id}` });
+    }
+
+    const oldTags = await Vocabulary_Tag.findAll({
       where: { vocabularyId: id },
-      attributes: ["tagId"],
     });
 
-    const tagIds = tagIdsResult.map((vt) => vt.tagId);
+    if (oldTags.length > 0) {
+      const tagIds = oldTags.map((tag) => tag.tagId);
+      await Vocabulary_Tag.destroy({
+        where: {
+          tagId: tagIds,
+          vocabularyId: id,
+        },
+      });
 
-    await Vocabulary.destroy({ where: { id, userId } });
-
-    for (const tagId of tagIds) {
-      const remaining = await Vocabulary_Tag.count({ where: { tagId } });
-      if (remaining === 0) {
-        await Tag.destroy({ where: { id: tagId } });
+      for (const tagId of tagIds) {
+        const remaining = await Vocabulary_Tag.count({ where: { tagId } });
+        if (remaining === 0) {
+          await Tag.destroy({ where: { id: tagId } });
+        }
       }
     }
+
+    await Vocabulary.destroy({ where: { id, userId } });
 
     const userVocabulariesKey = `user:${userId}:vocabularies`;
     await redisClient.del(userVocabulariesKey);
