@@ -42,23 +42,6 @@ jobs:
         env:
           EC2_USER: ${{ secrets.EC2_USER }}
           EC2_HOST: ${{ secrets.EC2_HOST }}
-          SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
-          JWT_SECRET: ${{ secrets.JWT_SECRET }}
-          PORT: ${{ secrets.PORT }}
-          DB_USERNAME: ${{ secrets.DB_USERNAME }}
-          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-          DB_NAME: ${{ secrets.DB_NAME }}
-          DB_HOST: ${{ secrets.DB_HOST }}
-          DB_TEST_NAME: ${{ secrets.DB_TEST_NAME }}
-          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
-          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
-          GOOGLE_CALLBACK_URL: ${{ secrets.GOOGLE_CALLBACK_URL }}
-          GOOGLE_TRANSLATION_KEY: ${{ secrets.GOOGLE_TRANSLATION_KEY }}
-          WORDNIK_KEY: ${{ secrets.WORDNIK_KEY }}
-          REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
-          REDIS_HOST: ${{ secrets.REDIS_HOST }}
-          REDIS_PORT: ${{ secrets.REDIS_PORT }}
-          REDIS_MAX_CONNECTIONS: ${{ secrets.REDIS_MAX_CONNECTIONS }}
         run: |
           ssh -o StrictHostKeyChecking=no $EC2_USER@$EC2_HOST << 'EOF'
             # 確保目錄存在
@@ -68,25 +51,23 @@ jobs:
             cd /home/ec2-user/myproject
 
             # 創建 .env 文件
-            cat <<EOT > .env
-SESSION_SECRET=${{ secrets.SESSION_SECRET }}
-JWT_SECRET=${{ secrets.JWT_SECRET }}
-PORT=${{ secrets.PORT }}
-DB_USERNAME=${{ secrets.DB_USERNAME }}
-DB_PASSWORD=${{ secrets.DB_PASSWORD }}
-DB_NAME=${{ secrets.DB_NAME }}
-DB_HOST=${{ secrets.DB_HOST }}
-DB_TEST_NAME=${{ secrets.DB_TEST_NAME }}
-GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}
-GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}
-GOOGLE_CALLBACK_URL=${{ secrets.GOOGLE_CALLBACK_URL }}
-GOOGLE_TRANSLATION_KEY=${{ secrets.GOOGLE_TRANSLATION_KEY }}
-WORDNIK_KEY=${{ secrets.WORDNIK_KEY }}
-REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}
-REDIS_HOST=${{ secrets.REDIS_HOST }}
-REDIS_PORT=${{ secrets.REDIS_PORT }}
-REDIS_MAX_CONNECTIONS=${{ secrets.REDIS_MAX_CONNECTIONS }}
-EOT
+            echo "SESSION_SECRET=${{ secrets.SESSION_SECRET }}" >> .env
+            echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
+            echo "PORT=${{ secrets.PORT }}" >> .env
+            echo "DB_USERNAME=${{ secrets.DB_USERNAME }}" >> .env
+            echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> .env
+            echo "DB_NAME=${{ secrets.DB_NAME }}" >> .env
+            echo "DB_HOST=${{ secrets.DB_HOST }}" >> .env
+            echo "DB_TEST_NAME=${{ secrets.DB_TEST_NAME }}" >> .env
+            echo "GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}" >> .env
+            echo "GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}" >> .env
+            echo "GOOGLE_CALLBACK_URL=${{ secrets.GOOGLE_CALLBACK_URL }}" >> .env
+            echo "GOOGLE_TRANSLATION_KEY=${{ secrets.GOOGLE_TRANSLATION_KEY }}" >> .env
+            echo "WORDNIK_KEY=${{ secrets.WORDNIK_KEY }}" >> .env
+            echo "REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}" >> .env
+            echo "REDIS_HOST=${{ secrets.REDIS_HOST }}" >> .env
+            echo "REDIS_PORT=${{ secrets.REDIS_PORT }}" >> .env
+            echo "REDIS_MAX_CONNECTIONS=${{ secrets.REDIS_MAX_CONNECTIONS }}" >> .env
 
             # 檢查 docker-compose.yml 文件
             if [ ! -f docker-compose.yml ]; then
