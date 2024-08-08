@@ -24,30 +24,3 @@ services:
       REDIS_HOST: ${REDIS_HOST}
       REDIS_PORT: ${REDIS_PORT}
       REDIS_MAX_CONNECTIONS: ${REDIS_MAX_CONNECTIONS}
-
-  # ! 因為現在兩個資料庫都在雲端，其實可以不用設定 db 和 redis 的 container
-  db:
-    image: mysql:5.7
-    environment:
-      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
-      MYSQL_DATABASE: ${DB_NAME}
-      MYSQL_USER: ${DB_USERNAME}
-      MYSQL_PASSWORD: ${DB_PASSWORD}
-    ports:
-      - "3366:3306"
-    volumes:
-      - my-db:/var/lib/mysql
-
-  redis:
-    image: redis:6.0
-    command: redis-server --requirepass ${REDIS_PASSWORD}
-    environment:
-      REDIS_PASSWORD: ${REDIS_PASSWORD}
-    ports:
-      - "${REDIS_PORT}:6379"
-    volumes:
-      - redis-data:/data
-
-volumes:
-  my-db:
-  redis-data:
