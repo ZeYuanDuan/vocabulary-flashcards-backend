@@ -8,7 +8,7 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    environment: production # 指定使用的 Environment
+    environment: production
 
     steps:
       - name: Checkout code
@@ -69,24 +69,24 @@ jobs:
 
             # 創建 .env 文件
             cat <<EOT > .env
-            SESSION_SECRET=${SESSION_SECRET}
-            JWT_SECRET=${JWT_SECRET}
-            PORT=${PORT}
-            DB_USERNAME=${DB_USERNAME}
-            DB_PASSWORD=${DB_PASSWORD}
-            DB_NAME=${DB_NAME}
-            DB_HOST=${DB_HOST}
-            DB_TEST_NAME=${DB_TEST_NAME}
-            GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
-            GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
-            GOOGLE_CALLBACK_URL=${GOOGLE_CALLBACK_URL}
-            GOOGLE_TRANSLATION_KEY=${GOOGLE_TRANSLATION_KEY}
-            WORDNIK_KEY=${WORDNIK_KEY}
-            REDIS_PASSWORD=${REDIS_PASSWORD}
-            REDIS_HOST=${REDIS_HOST}
-            REDIS_PORT=${REDIS_PORT}
-            REDIS_MAX_CONNECTIONS=${REDIS_MAX_CONNECTIONS}
-            EOT
+SESSION_SECRET=${{ secrets.SESSION_SECRET }}
+JWT_SECRET=${{ secrets.JWT_SECRET }}
+PORT=${{ secrets.PORT }}
+DB_USERNAME=${{ secrets.DB_USERNAME }}
+DB_PASSWORD=${{ secrets.DB_PASSWORD }}
+DB_NAME=${{ secrets.DB_NAME }}
+DB_HOST=${{ secrets.DB_HOST }}
+DB_TEST_NAME=${{ secrets.DB_TEST_NAME }}
+GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}
+GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}
+GOOGLE_CALLBACK_URL=${{ secrets.GOOGLE_CALLBACK_URL }}
+GOOGLE_TRANSLATION_KEY=${{ secrets.GOOGLE_TRANSLATION_KEY }}
+WORDNIK_KEY=${{ secrets.WORDNIK_KEY }}
+REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}
+REDIS_HOST=${{ secrets.REDIS_HOST }}
+REDIS_PORT=${{ secrets.REDIS_PORT }}
+REDIS_MAX_CONNECTIONS=${{ secrets.REDIS_MAX_CONNECTIONS }}
+EOT
 
             # 檢查 docker-compose.yml 文件
             if [ ! -f docker-compose.yml ]; then
