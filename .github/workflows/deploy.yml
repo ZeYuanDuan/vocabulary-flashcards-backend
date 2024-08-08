@@ -61,9 +61,13 @@ jobs:
           REDIS_MAX_CONNECTIONS: ${{ secrets.REDIS_MAX_CONNECTIONS }}
         run: |
           ssh -o StrictHostKeyChecking=no $EC2_USER@$EC2_HOST << 'EOF'
+            # 確保目錄存在
+            mkdir -p /home/ec2-user/myproject
+
+            # 進入目錄
             cd /home/ec2-user/myproject
 
-            # Create .env file with environment variables
+            # 創建 .env 文件
             cat <<EOT > .env
             SESSION_SECRET=${SESSION_SECRET}
             JWT_SECRET=${JWT_SECRET}
@@ -84,12 +88,18 @@ jobs:
             REDIS_MAX_CONNECTIONS=${REDIS_MAX_CONNECTIONS}
             EOT
 
-            # Pull the latest image from Docker Hub
+            # 檢查 docker-compose.yml 文件
+            if [ ! -f docker-compose.yml ]; then
+              echo "docker-compose.yml not found!"
+              exit 1
+            fi
+
+            # 拉取最新映像
             docker-compose pull
 
-            # Stop and remove old containers
+            # 停止並移除舊容器
             docker-compose down
 
-            # Start the new containers
+            # 啟動新容器
             docker-compose up -d
           EOF
