@@ -66,6 +66,25 @@ jobs:
               exit 1
             fi
 
+            # 創建或更新 .env 文件
+            echo "SESSION_SECRET=${{ secrets.SESSION_SECRET }}" > .env
+            echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
+            echo "PORT=${{ secrets.PORT }}" >> .env
+            echo "DB_USERNAME=${{ secrets.DB_USERNAME }}" >> .env
+            echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> .env
+            echo "DB_NAME=${{ secrets.DB_NAME }}" >> .env
+            echo "DB_HOST=${{ secrets.DB_HOST }}" >> .env
+            echo "DB_TEST_NAME=${{ secrets.DB_TEST_NAME }}" >> .env
+            echo "GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}" >> .env
+            echo "GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}" >> .env
+            echo "GOOGLE_CALLBACK_URL=${{ secrets.GOOGLE_CALLBACK_URL }}" >> .env
+            echo "GOOGLE_TRANSLATION_KEY=${{ secrets.GOOGLE_TRANSLATION_KEY }}" >> .env
+            echo "WORDNIK_KEY=${{ secrets.WORDNIK_KEY }}" >> .env
+            echo "REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}" >> .env
+            echo "REDIS_HOST=${{ secrets.REDIS_HOST }}" >> .env
+            echo "REDIS_PORT=${{ secrets.REDIS_PORT }}" >> .env
+            echo "REDIS_MAX_CONNECTIONS=${{ secrets.REDIS_MAX_CONNECTIONS }}" >> .env
+
             # 拉取最新映像
             docker-compose build
 
