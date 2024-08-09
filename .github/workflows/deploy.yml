@@ -18,14 +18,12 @@ jobs:
       - name: Pull from GitHub on EC2
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << EOF
-            # 檢查目錄是否存在，如果不存在則創建目錄
             if [ ! -d /home/ec2-user/myproject ]; then
               mkdir -p /home/ec2-user/myproject
             fi
 
             cd /home/ec2-user/myproject
 
-            # 檢查是否已經初始化 Git 倉庫，若無則初始化並克隆
             if [ ! -d .git ]; then
               git clone https://github.com/${{ github.repository }}.git .
               git checkout CICD-pipeline
@@ -76,6 +74,13 @@ jobs:
 
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << EOF
+            # 檢查 cgroups 是否掛載
+            if ! mount | grep cgroup; then
+              sudo mount -t cgroup2 none /sys/fs/cgroup
+            fi
+
+            sudo systemctl restart docker
+
             cd /home/ec2-user/myproject
 
             export SESSION_SECRET=${SESSION_SECRET}
