@@ -42,10 +42,11 @@ jobs:
             # 確保進入正確目錄
             cd /home/ec2-user/myproject
 
-            # 如果目錄中已有 git 倉庫，拉取最新代碼；否則克隆倉庫
+            # 如果目錄中已經存在且是 Git 倉庫，拉取更新；否則清空目錄並克隆倉庫
             if [ -d .git ]; then
               git pull origin CICD-pipeline
             else
+              rm -rf /home/ec2-user/myproject/*
               git clone -b CICD-pipeline https://github.com/${{ github.repository }}.git .
             fi
 
