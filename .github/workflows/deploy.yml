@@ -50,13 +50,13 @@ jobs:
               git clone -b CICD-pipeline https://github.com/${{ github.repository }}.git .
             fi
 
-            # 確認 docker-compose.yml 文件存在於當前目錄
-            if [ ! -f /home/ec2-user/myproject/docker-compose.yml ]; then
-              echo "docker-compose.yml not found in /home/ec2-user/myproject!"
+            # 確認 docker-compose.yaml 文件存在於當前目錄
+            if [ ! -f /home/ec2-user/myproject/docker-compose.yaml ]; then
+              echo "docker-compose.yaml not found in /home/ec2-user/myproject!"
               exit 1
             fi
 
-            # 導出環境變數
+            # 導出環境變數並運行 Docker Compose
             export SESSION_SECRET=${SESSION_SECRET}
             export JWT_SECRET=${JWT_SECRET}
             export PORT=${PORT}
@@ -76,6 +76,6 @@ jobs:
             export REDIS_MAX_CONNECTIONS=${REDIS_MAX_CONNECTIONS}
 
             # 構建並啟動容器
-            docker-compose down
-            docker-compose up --build -d
+            docker-compose -f docker-compose.yaml down
+            docker-compose -f docker-compose.yaml up --build -d
           EOF
