@@ -104,4 +104,3 @@ jobs:
             docker compose down
             docker compose up --build -d
           EOF
-# 為了可以送出新 commit 而硬加的註解
