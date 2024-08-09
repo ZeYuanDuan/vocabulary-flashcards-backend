@@ -17,13 +17,15 @@ jobs:
 
       - name: Pull from GitHub on EC2
         run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << EOF
-            if [ ! -d /home/ec2-user/myproject ]; then
-              mkdir -p /home/ec2-user/myproject
+          ssh -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_HOST }} << EOF
+            # 確保用戶目錄正確，切換到 Ubuntu 的預設用戶目錄
+            if [ ! -d /home/ubuntu/myproject ]; then
+              mkdir -p /home/ubuntu/myproject
             fi
 
-            cd /home/ec2-user/myproject
+            cd /home/ubuntu/myproject
 
+            # 檢查是否已經初始化 Git 倉庫，若無則初始化並克隆
             if [ ! -d .git ]; then
               git clone https://github.com/${{ github.repository }}.git .
               git checkout CICD-pipeline
@@ -73,16 +75,10 @@ jobs:
           REDIS_MAX_CONNECTIONS: ${{ secrets.REDIS_MAX_CONNECTIONS }}
 
         run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << EOF
-            # 檢查 cgroups 是否掛載
-            if ! mount | grep cgroup; then
-              sudo mount -t cgroup2 none /sys/fs/cgroup
-            fi
+          ssh -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_HOST }} << EOF
+            cd /home/ubuntu/myproject
 
-            sudo systemctl restart docker
-
-            cd /home/ec2-user/myproject
-
+            # 導出環境變數
             export SESSION_SECRET=${SESSION_SECRET}
             export JWT_SECRET=${JWT_SECRET}
             export PORT=${PORT}
@@ -101,8 +97,7 @@ jobs:
             export REDIS_PORT=${REDIS_PORT}
             export REDIS_MAX_CONNECTIONS=${REDIS_MAX_CONNECTIONS}
 
+            # 使用 Docker Compose 構建並啟動容器
             docker compose down
             docker compose up --build -d
           EOF
-
-# 為了 commit 硬加的註解
