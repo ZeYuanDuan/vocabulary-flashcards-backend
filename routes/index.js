@@ -66,7 +66,7 @@ router.get(
 
 router.get("/auth/google/callback", authController.getGoogleAuthCallback);
 
-// ! Loader.io 驗證 (壓力測試用)
+// ! Loader.io 驗證 (壓力測試)
 app.get("/loaderio-559d14be60679a0e8cb038a519654045/", (req, res) => {
   res.send("loaderio-559d14be60679a0e8cb038a519654045");
 });
