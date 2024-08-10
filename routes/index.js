@@ -56,16 +56,15 @@ router.get("/daily", homeController.getDailyVocabularies);
 //   }
 // );
 
-// ! 因為容器部屬沒找到 GOOGLE_CLIENT_ID，暫時關閉做測試
-// router.get(
-//   "/auth/google",
-//   passport.authenticate("google", {
-//     scope: ["profile", "email"],
-//     prompt: "select_account",
-//   })
-// );
+router.get(
+  "/auth/google",
+  passport.authenticate("google", {
+    scope: ["profile", "email"],
+    prompt: "select_account",
+  })
+);
 
-// router.get("/auth/google/callback", authController.getGoogleAuthCallback);
+router.get("/auth/google/callback", authController.getGoogleAuthCallback);
 
 // ===========================
 
