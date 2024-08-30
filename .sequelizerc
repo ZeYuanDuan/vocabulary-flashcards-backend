@@ -1,6 +1,4 @@
-'use strict';
-
-require('dotenv').config();  // 引入 dotenv
+require('dotenv').config();
 const path = require('path');
 
 module.exports = {
