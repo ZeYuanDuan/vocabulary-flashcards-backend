@@ -5,6 +5,7 @@ const dotenv = require("dotenv");
 const corsOptions = require("./config/corsOptions.js");
 const router = require("./routes/index.js");
 const errorHandler = require("./middlewares/errorHandler.js");
+const setupCronJobs = require("./cronJobs");
 
 // 環境變量配置
 if (process.env.NODE_ENV !== "production") {
@@ -24,6 +25,9 @@ app.use(router);
 
 // 錯誤處理
 app.use(errorHandler);
+
+// 初始化定時任務
+setupCronJobs();
 
 // 啟動服務器
 app.listen(port, "0.0.0.0", () => {

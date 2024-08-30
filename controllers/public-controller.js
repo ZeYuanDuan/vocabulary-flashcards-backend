@@ -1,7 +1,5 @@
-const db = require("../models/mysql");
 const { redisClient } = require("../models/redis");
-const Vocabulary = db.Vocabulary;
-const axios = require("axios"); // Added axios import since it's used in the code
+const axios = require("axios");
 const moment = require("moment-timezone");
 
 const {
@@ -13,27 +11,7 @@ const {
 
 // =========================
 
-const homeControllers = {
-  getHomePage: async (req, res, next) => {
-    try {
-      const { name, id } = req.user;
-
-      const userVocabulariesCountKey = `user:${id}:vocabularies:count`;
-      const vocabulariesCount = await Vocabulary.count({
-        where: { userId: id },
-      });
-      await redisClient.set(
-        userVocabulariesCountKey,
-        vocabulariesCount,
-        "EX",
-        3600
-      );
-      return res.json({ name, vocStorage: vocabulariesCount });
-    } catch (error) {
-      next(error);
-    }
-  },
-
+const publicControllers = {
   getDailyVocabularies: async (req, res, next) => {
     const todayDailyKey = `daily:today`;
 
@@ -223,4 +201,4 @@ const fetchWithRetry = async (url, retries = 10) => {
   }
 };
 
-module.exports = homeControllers;
+module.exports = publicControllers;

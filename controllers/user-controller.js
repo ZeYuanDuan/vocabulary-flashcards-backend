@@ -1,7 +1,7 @@
 const bcrypt = require("bcryptjs");
-
 const db = require("../models/mysql");
-const { User, Local_User } = db;
+const { redisClient } = require("../models/redis");
+const { User, Local_User, Vocabulary } = db;
 
 const userControllers = {
   postUsers: async (req, res, next) => {
@@ -59,6 +59,26 @@ const userControllers = {
       return res.status(200).json({ message: "註冊成功" });
     } catch (error) {
       return next(error);
+    }
+  },
+
+  getUserHomePage: async (req, res, next) => {
+    try {
+      const { name, id } = req.user;
+
+      const userVocabulariesCountKey = `user:${id}:vocabularies:count`;
+      const vocabulariesCount = await Vocabulary.count({
+        where: { userId: id },
+      });
+      await redisClient.set(
+        userVocabulariesCountKey,
+        vocabulariesCount,
+        "EX",
+        3600
+      );
+      return res.json({ name, vocStorage: vocabulariesCount });
+    } catch (error) {
+      next(error);
     }
   },
 };
