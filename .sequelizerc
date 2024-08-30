@@ -5,7 +5,7 @@ const path = require('path');
 
 module.exports = {
   'config': path.resolve('config', 'config.js'),  // config 的路徑為 /config/config.js
-  'models-path': path.resolve('models', 'mysql'),  // 更新 models-path 的路徑為 /models/mysql
+  'models-path': path.resolve('models', 'mysql'),  // models-path 的路徑為 /models/mysql
   'seeders-path': path.resolve('seeders'),  // seeders-path 的路徑為 /seeders
   'migrations-path': path.resolve('migrations')  //migrations-path 的路徑為 /migrations
 };
