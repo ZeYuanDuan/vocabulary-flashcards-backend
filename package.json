@@ -42,5 +42,10 @@
     "sequelize-cli": "^6.6.2",
     "url": "^0.11.3",
     "util": "^0.12.5"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.25.6",
+    "@babel/core": "^7.25.2",
+    "babel-plugin-transform-commonjs": "^1.1.6"
   }
 }

@@ -1,26 +1,33 @@
 const cors = require("cors");
 const express = require("express");
-const corsOptions = require("./config/corsOptions");
+const dotenv = require("dotenv");
+
+const corsOptions = require("./config/corsOptions.js");
+const router = require("./routes/index.js");
+const errorHandler = require("./middlewares/errorHandler.js");
+
+// 環境變量配置
+if (process.env.NODE_ENV !== "production") {
+  dotenv.config();
+}
 
 const app = express();
-
-const router = require("./routes");
-const errorHandler = require("./middlewares/errorHandler");
-
-if (process.env.NODE_ENV !== "production") {
-  require("dotenv").config();
-}
 const port = process.env.PORT || 3000;
 
+// 中間件設置
 app.use(cors(corsOptions));
-
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// 路由設置
 app.use(router);
 
+// 錯誤處理
 app.use(errorHandler);
 
+// 啟動服務器
 app.listen(port, "0.0.0.0", () => {
-  console.log(`伺服器正在運行運行`);
+  console.log(`伺服器正在運行於 http://localhost:${port}`);
 });
+
+module.exports = app;

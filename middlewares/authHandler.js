@@ -1,4 +1,4 @@
-const passport = require("../config/passport")
+const passport = require("../config/auth/passport");
 
 module.exports = (req, res, next) => {
   passport.authenticate("jwt", { session: false }, (err, user) => {
@@ -12,4 +12,3 @@ module.exports = (req, res, next) => {
     next();
   })(req, res, next);
 };
-
