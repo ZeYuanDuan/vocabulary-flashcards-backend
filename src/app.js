@@ -5,7 +5,7 @@ const dotenv = require("dotenv");
 const corsOptions = require("./config/corsOptions.js");
 const router = require("./routes/index.js");
 const errorHandler = require("./middlewares/errorHandler.js");
-const setupCronJobs = require("./cronJobs");
+const setupCronJobs = require("./cronJobs.js");
 
 // 環境變量配置
 if (process.env.NODE_ENV !== "production") {
