@@ -131,3 +131,7 @@ dist
 
 # Ignore Dockerfile
 Dockerfile
+
+# Ignore TODO
+TODO.md
+

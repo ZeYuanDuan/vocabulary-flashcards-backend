@@ -1,5 +1,3 @@
-const axios = require("axios");
-
 const VOC_LIMIT = 20;
 
 function generateWordnikURL() {
@@ -54,7 +52,6 @@ function generateExampleURL(keyword) {
   });
   return `${baseUrl}?${params.toString()}`;
 }
-
 
 module.exports = {
   generateWordnikURL,
