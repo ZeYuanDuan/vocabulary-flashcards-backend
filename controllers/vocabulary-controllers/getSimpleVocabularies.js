@@ -4,14 +4,21 @@ const Vocabulary = db.Vocabulary;
 
 async function getSimpleVocabularies(req, res, next) {
   const userId = req.user.id;
-  let start = parseInt(req.query.start, 10);
-  let end = parseInt(req.query.end, 10);
+  let start = parseInt(req.query.start, 10) || 0;
+  let end = parseInt(req.query.end, 10) || -1;
 
   try {
-    if (end === -1) {
-      const totalRecords = await Vocabulary.count({ where: { userId } });
+    const totalRecords = await Vocabulary.count({ where: { userId } });
+
+    if (isNaN(start) || start < 0) {
+      start = 0;
+    }
+
+    if (isNaN(end) || end < 0 || end >= totalRecords) {
       end = totalRecords - 1;
     }
+
+    const limit = end - start + 1;
 
     let results = [];
 
@@ -29,7 +36,7 @@ async function getSimpleVocabularies(req, res, next) {
         where: { userId },
         attributes: { exclude: ["userId"] },
         offset: start,
-        limit: end - start + 1,
+        limit: limit > 0 ? limit : undefined,
         raw: true,
       });
 

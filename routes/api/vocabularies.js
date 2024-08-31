@@ -5,6 +5,7 @@ const vocabularyController = require("../../controllers/vocabulary-controllers/i
 
 router.get("/", vocabularyController.getVocabularies);
 router.get("/simple", vocabularyController.getSimpleVocabularies); // ! 這個路由有狀況
+
 router.post("/", vocabularyController.postVocabularies);
 router.patch("/:id", vocabularyController.patchVocabularies);
 router.delete("/:id", vocabularyController.deleteVocabularies);
