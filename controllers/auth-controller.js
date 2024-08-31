@@ -8,8 +8,8 @@ const createAuthHandler = (strategy) => (req, res, next) => {
 };
 
 const authControllers = {
-  postLogin: createAuthHandler("local"),
-  getGoogleAuthCallback: createAuthHandler("google"),
+  authenticateLocalLogin: createAuthHandler("local"),
+  handleGoogleAuthCallback: createAuthHandler("google"),
 };
 
 module.exports = authControllers;

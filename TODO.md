@@ -4,7 +4,8 @@
 
 ### 待辦事項
 
-1. 將 CommonJS 語法轉換為 ES Module 語法，使用 Babel 轉換
+1. getSimpleVocabulary 有狀況，要進行除錯
+2. 將 CommonJS 語法轉換為 ES Module 語法，使用 Babel 轉換
 
 用來測試 Google 第三方登入的路由
 

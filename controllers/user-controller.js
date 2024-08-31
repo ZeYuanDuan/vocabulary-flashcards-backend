@@ -4,7 +4,7 @@ const { redisClient } = require("../models/redis");
 const { User, Local_User, Vocabulary } = db;
 
 const userControllers = {
-  postUsers: async (req, res, next) => {
+  registerLocalUser: async (req, res, next) => {
     const { name, email, password, confirmPassword } = req.body;
     try {
       if (!name || !email || !password || !confirmPassword) {
@@ -62,7 +62,7 @@ const userControllers = {
     }
   },
 
-  getUserHomePage: async (req, res, next) => {
+  getUserStatistics: async (req, res, next) => {
     try {
       const { name, id } = req.user;
 

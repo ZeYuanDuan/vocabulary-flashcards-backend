@@ -4,7 +4,7 @@ const authController = require("../../controllers/auth-controller.js");
 
 const router = express.Router();
 
-router.post("/local", authController.postLogin);
+router.post("/local", authController.authenticateLocalLogin);
 router.get(
   "/google",
   passport.authenticate("google", {
@@ -12,6 +12,6 @@ router.get(
     prompt: "select_account",
   })
 );
-router.get("/google/callback", authController.getGoogleAuthCallback);
+router.get("/google/callback", authController.handleGoogleAuthCallback);
 
 module.exports = router;

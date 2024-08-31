@@ -12,6 +12,7 @@ const {
 // =========================
 
 const publicControllers = {
+  // * 取得今日單字
   getDailyVocabularies: async (req, res, next) => {
     const todayDailyKey = `daily:today`;
 
@@ -31,8 +32,8 @@ const publicControllers = {
     }
   },
 
-  // * 請求一串英文單字，組裝中文翻譯，存到 raw
-  fetchAndStoreVocabularies: async () => {
+  // * 請求一組英文單字，加上中文翻譯，存到 raw
+  fetchAndStoreRawVocabularies: async () => {
     try {
       const rawDailyKey = `daily:raw`;
       const exists = await redisClient.exists(rawDailyKey);
@@ -70,7 +71,7 @@ const publicControllers = {
       await redisClient.rPush(
         "errorQueue",
         JSON.stringify({
-          action: "fetchAndStoreVocabularies",
+          action: "fetchAndStoreRawVocabularies",
           key: `daily:EngChi`,
           dataField: combinedArray,
           date: formattedDate,
@@ -80,8 +81,8 @@ const publicControllers = {
     }
   },
 
-  // * 將 Daily Key 的單字，加上定義和例句，存到 details
-  fetchVocabulariesDetail: async () => {
+  // * 將 raw 的單字，加上定義和例句，存到 details
+  fetchAndStoreVocabularyDetails: async () => {
     try {
       const detailDailyKey = `daily:details`;
       const exists = await redisClient.exists(detailDailyKey);
@@ -134,7 +135,7 @@ const publicControllers = {
       await redisClient.rPush(
         "errorQueue",
         JSON.stringify({
-          action: "fetchVocabulariesDetail",
+          action: "fetchAndStoreVocabularyDetails",
           key: `daily:details`,
           dataField: vocabularyDetail,
           date: date,
@@ -144,6 +145,7 @@ const publicControllers = {
     }
   },
 
+  // * 更新每日單字
   updateDailyVocabularies: async () => {
     const detailDailyKey = `daily:details`;
     const todayDailyKey = `daily:today`;
