@@ -7,9 +7,7 @@ const Vocabulary_Tag = db.Vocabulary_Tag;
 const {
   filterUndefined,
 } = require("../../../services/vocabulary-services/filterUndefined");
-
-const moment = require("moment-timezone");
-const taipeiTime = moment.tz(new Date(), "Asia/Taipei").toDate();
+const { getTaipeiTime } = require("../../../services/vocabulary-services/timeService");
 
 const SYSTEM_TAG_PREFIX = "__";
 const USER_TAG_PREFIX = "user_";
@@ -29,8 +27,8 @@ async function postVocabularies(req, res, next) {
     definition,
     example,
     userId,
-    createdAt: taipeiTime,
-    updatedAt: taipeiTime,
+    createdAt: getTaipeiTime(),
+    updatedAt: getTaipeiTime(),
   };
 
   try {

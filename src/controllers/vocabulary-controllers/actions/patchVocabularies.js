@@ -7,9 +7,9 @@ const Vocabulary_Tag = db.Vocabulary_Tag;
 const {
   filterUndefined,
 } = require("../../../services/vocabulary-services/filterUndefined");
-
-const moment = require("moment-timezone");
-const taipeiTime = moment.tz(new Date(), "Asia/Taipei").toDate();
+const {
+  getTaipeiTime,
+} = require("../../../services/vocabulary-services/timeService");
 
 const SYSTEM_TAG_PREFIX = "__";
 const USER_TAG_PREFIX = "user_";
@@ -26,7 +26,7 @@ async function patchVocabularies(req, res, next) {
     chinese,
     definition,
     example,
-    updatedAt: taipeiTime,
+    updatedAt: getTaipeiTime(),
   };
 
   try {
