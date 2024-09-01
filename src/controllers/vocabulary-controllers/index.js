@@ -1,8 +1,8 @@
-getVocabularies = require("./getVocabularies");
-getSimpleVocabularies = require("./getSimpleVocabularies");
-postVocabularies = require("./postVocabularies");
-patchVocabularies = require("./patchVocabularies");
-deleteVocabularies = require("./deleteVocabularies");
+getVocabularies = require("./actions/getVocabularies");
+getSimpleVocabularies = require("./actions/getSimpleVocabularies");
+postVocabularies = require("./actions/postVocabularies");
+patchVocabularies = require("./actions/patchVocabularies");
+deleteVocabularies = require("./actions/deleteVocabularies");
 
 const vocabularyControllers = {
   getVocabularies,

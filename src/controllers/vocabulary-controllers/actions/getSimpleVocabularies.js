@@ -1,5 +1,5 @@
-const db = require("../../models/mysql");
-const { redisClient } = require("../../models/redis");
+const db = require("../../../models/mysql");
+const { redisClient } = require("../../../models/redis");
 const Vocabulary = db.Vocabulary;
 
 async function getSimpleVocabularies(req, res, next) {

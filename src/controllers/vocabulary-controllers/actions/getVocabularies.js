@@ -1,5 +1,5 @@
-const db = require("../../models/mysql");
-const { redisClient } = require("../../models/redis");
+const db = require("../../../models/mysql");
+const { redisClient } = require("../../../models/redis");
 const Vocabulary = db.Vocabulary;
 const Tag = db.Tag;
 const Vocabulary_Tag = db.Vocabulary_Tag;

@@ -1,5 +1,5 @@
-const db = require("../../models/mysql");
-const { redisClient } = require("../../models/redis");
+const db = require("../../../models/mysql");
+const { redisClient } = require("../../../models/redis");
 const Vocabulary = db.Vocabulary;
 const Tag = db.Tag;
 const Vocabulary_Tag = db.Vocabulary_Tag;
@@ -11,64 +11,34 @@ const SYSTEM_TAG_PREFIX = "__";
 const USER_TAG_PREFIX = "user_";
 const NO_TAG_NAME = `${SYSTEM_TAG_PREFIX}NoTag`;
 
-async function patchVocabularies(req, res, next) {
-  const { id } = req.params;
-  const userId = req.user.id;
-
+async function postVocabularies(req, res, next) {
   const { english, chinese, definition, example, tags } = req.body;
 
-  const updateField = {
+  if (!english) {
+    return res.status(400).json({ message: "未加入英文單字" });
+  }
+
+  const userId = req.user.id;
+  const dataField = {
     english,
     chinese,
     definition,
     example,
+    userId,
+    createdAt: taipeiTime,
     updatedAt: taipeiTime,
   };
 
   try {
-    const vocabulary = await Vocabulary.findOne({ where: { id, userId } });
-    if (!vocabulary) {
-      return res.status(404).json({ message: `找不到單字 ID ${id}` });
-    }
+    const mysqlField = await Vocabulary.create(filterUndefined(dataField));
+    const { id } = mysqlField;
 
-    await Vocabulary.update(filterUndefined(updateField), {
-      where: { id, userId },
-    });
-
-    // * 先刪除原本該單字所屬的標籤中的單字 ID
-    const oldTags = await Vocabulary_Tag.findAll({
-      where: { vocabularyId: id },
-    });
-    if (oldTags.length > 0) {
-      const tagIds = oldTags.map((tag) => tag.tagId);
-      await Vocabulary_Tag.destroy({
-        where: {
-          tagId: tagIds,
-          vocabularyId: id,
-        },
-      });
-
-      // 檢查每個 tagId 是否在 Vocabulary_Tag 表中仍有對應的欄位
-      for (const tagId of tagIds) {
-        const tagCount = await Vocabulary_Tag.count({
-          where: { tagId: tagId },
-        });
-        if (tagCount === 0) {
-          await Tag.destroy({
-            where: { id: tagId },
-          });
-        }
-      }
-    }
-
-    // * 處理標籤
+    // 處理標籤
     const uniqueTags = [...new Set(tags)];
-
     let tagList =
       Array.isArray(uniqueTags) && uniqueTags.length > 0
         ? uniqueTags.map((tag) => USER_TAG_PREFIX + tag)
         : [NO_TAG_NAME];
-
     for (const tagName of tagList) {
       let tag = await Tag.findOne({
         where: { name: tagName, userId: userId },
@@ -82,8 +52,13 @@ async function patchVocabularies(req, res, next) {
     const userVocabulariesKey = `user:${userId}:vocabularies`;
     await redisClient.del(userVocabulariesKey);
 
+    // * 單字總量加 1
+    const userVocabulariesCountKey = `user:${userId}:vocabularies:count`;
+    await redisClient.incr(userVocabulariesCountKey);
+
     res.status(200).json({
-      message: `單字 ID ${id} 更新成功`,
+      message: "單字儲存成功",
+      vocabularyId: id,
     });
   } catch (error) {
     console.error("更新資料庫出現錯誤：", error);
@@ -101,4 +76,4 @@ const filterUndefined = (obj) => {
   }, {});
 };
 
-module.exports = patchVocabularies;
+module.exports = postVocabularies;
