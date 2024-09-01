@@ -71,7 +71,7 @@ async function getVocabularies(req, res, next) {
   }
 }
 
-// 輔助函數：從 MySQL 獲取並緩存標籤和單字
+// * 輔助函數：從 MySQL 獲取並緩存標籤和單字
 const fetchAndCacheTagsAndVocabulariesFromMySQL = async (userId) => {
   let results = [];
   try {

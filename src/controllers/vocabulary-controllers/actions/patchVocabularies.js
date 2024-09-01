@@ -4,6 +4,10 @@ const Vocabulary = db.Vocabulary;
 const Tag = db.Tag;
 const Vocabulary_Tag = db.Vocabulary_Tag;
 
+const {
+  filterUndefined,
+} = require("../../../services/vocabulary-services/filterUndefined");
+
 const moment = require("moment-timezone");
 const taipeiTime = moment.tz(new Date(), "Asia/Taipei").toDate();
 
@@ -48,7 +52,7 @@ async function patchVocabularies(req, res, next) {
         },
       });
 
-      // 檢查每個 tagId 是否在 Vocabulary_Tag 表中仍有對應的欄位
+      // * 檢查每個 tagId 是否在 Vocabulary_Tag 表中仍有對應的欄位
       for (const tagId of tagIds) {
         const tagCount = await Vocabulary_Tag.count({
           where: { tagId: tagId },
@@ -90,15 +94,5 @@ async function patchVocabularies(req, res, next) {
     next(error);
   }
 }
-
-// 輔助函數：過濾掉 undefined 的欄位
-const filterUndefined = (obj) => {
-  return Object.entries(obj).reduce((acc, [key, value]) => {
-    if (value !== undefined) {
-      acc[key] = value;
-    }
-    return acc;
-  }, {});
-};
 
 module.exports = patchVocabularies;

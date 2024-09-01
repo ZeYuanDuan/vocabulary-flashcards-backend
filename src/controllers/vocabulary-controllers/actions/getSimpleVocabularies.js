@@ -22,7 +22,7 @@ async function getSimpleVocabularies(req, res, next) {
 
     let results = [];
 
-    // 檢查 Redis 快取
+    // * 檢查 Redis 快取
     const userSimpleVocabulariesKey = `user:${userId}:simpleVocabularies:${start}-${end}`;
     const cachedVocabularies = await redisClient.json.get(
       userSimpleVocabulariesKey
@@ -31,7 +31,7 @@ async function getSimpleVocabularies(req, res, next) {
     if (cachedVocabularies) {
       results = JSON.parse(cachedVocabularies);
     } else {
-      // 從 MySQL 中獲取單字詳細資料
+      // * 從 MySQL 中獲取單字詳細資料
       results = await Vocabulary.findAll({
         where: { userId },
         attributes: { exclude: ["userId"] },

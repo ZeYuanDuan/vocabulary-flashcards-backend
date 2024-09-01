@@ -4,6 +4,10 @@ const Vocabulary = db.Vocabulary;
 const Tag = db.Tag;
 const Vocabulary_Tag = db.Vocabulary_Tag;
 
+const {
+  filterUndefined,
+} = require("../../../services/vocabulary-services/filterUndefined");
+
 const moment = require("moment-timezone");
 const taipeiTime = moment.tz(new Date(), "Asia/Taipei").toDate();
 
@@ -33,7 +37,7 @@ async function postVocabularies(req, res, next) {
     const mysqlField = await Vocabulary.create(filterUndefined(dataField));
     const { id } = mysqlField;
 
-    // 處理標籤
+    // * 處理標籤
     const uniqueTags = [...new Set(tags)];
     let tagList =
       Array.isArray(uniqueTags) && uniqueTags.length > 0
@@ -65,15 +69,5 @@ async function postVocabularies(req, res, next) {
     next(error);
   }
 }
-
-// 輔助函數：過濾掉 undefined 的欄位
-const filterUndefined = (obj) => {
-  return Object.entries(obj).reduce((acc, [key, value]) => {
-    if (value !== undefined) {
-      acc[key] = value;
-    }
-    return acc;
-  }, {});
-};
 
 module.exports = postVocabularies;
