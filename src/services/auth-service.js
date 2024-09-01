@@ -1,4 +1,4 @@
-const db = require("../../models/mysql");
+const db = require("../models/mysql");
 const { Vocabulary, User } = db;
 const jwt = require("jsonwebtoken");
 

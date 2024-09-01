@@ -1,5 +1,5 @@
 const passport = require("passport");
-const { handleAuthResult } = require("../config/auth/auth-service");
+const { handleAuthResult } = require("../services/auth-service");
 
 const createAuthHandler = (strategy) => (req, res, next) => {
   passport.authenticate(strategy, (err, user, info) =>

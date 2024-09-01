@@ -2,8 +2,8 @@ require('dotenv').config();
 const path = require('path');
 
 module.exports = {
-  'config': path.resolve('src', 'config', 'config.js'),  // config 的路徑為 /src/config/config.js
-  'models-path': path.resolve('src', 'models', 'mysql'),  // models-path 的路徑為 /src/models/mysql
-  'seeders-path': path.resolve('seeders'),  // seeders-path 的路徑為 /seeders
-  'migrations-path': path.resolve('migrations')  //migrations-path 的路徑為 /migrations
+  'config': path.resolve('db', 'config', 'config.js'),
+  'models-path': path.resolve('src', 'models'),
+  'seeders-path': path.resolve('db', 'seeders'),
+  'migrations-path': path.resolve('db', 'migrations')
 };
