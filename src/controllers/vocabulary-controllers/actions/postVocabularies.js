@@ -1,5 +1,4 @@
 const db = require("../../../models/mysql");
-const { redisClient } = require("../../../models/redis");
 const Vocabulary = db.Vocabulary;
 
 const {
@@ -11,6 +10,7 @@ const {
 const {
   processVocabularyTags,
 } = require("../../../services/vocabulary-services/tagService");
+const redisService = require("../../../services/vocabulary-services/redisService");
 
 async function postVocabularies(req, res, next) {
   const { english, chinese, definition, example, tags } = req.body;
@@ -36,12 +36,8 @@ async function postVocabularies(req, res, next) {
 
     await processVocabularyTags(tags, userId, vocabularyId);
 
-    const userVocabulariesKey = `user:${userId}:vocabularies`;
-    await redisClient.del(userVocabulariesKey);
-
-    // * 單字總量加 1
-    const userVocabulariesCountKey = `user:${userId}:vocabularies:count`;
-    await redisClient.incr(userVocabulariesCountKey);
+    await redisService.deleteVocabulariesFromCache(userId);
+    await redisService.incrementVocabulariesCount(userId);
 
     res.status(200).json({
       message: "單字儲存成功",

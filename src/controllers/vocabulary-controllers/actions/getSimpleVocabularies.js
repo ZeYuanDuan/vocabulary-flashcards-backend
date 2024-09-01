@@ -1,6 +1,6 @@
 const db = require("../../../models/mysql");
-const { redisClient } = require("../../../models/redis");
 const Vocabulary = db.Vocabulary;
+const redisService = require("../../../services/vocabulary-services/redisService");
 
 async function getSimpleVocabularies(req, res, next) {
   const userId = req.user.id;
@@ -23,10 +23,8 @@ async function getSimpleVocabularies(req, res, next) {
     let results = [];
 
     // * 檢查 Redis 快取
-    const userSimpleVocabulariesKey = `user:${userId}:simpleVocabularies:${start}-${end}`;
-    const cachedVocabularies = await redisClient.json.get(
-      userSimpleVocabulariesKey
-    );
+    const userSimpleVocabulariesKey = redisService.getUserSimpleVocabulariesKey(userId, start, end);
+    const cachedVocabularies = await redisService.getVocabulariesFromCache(userSimpleVocabulariesKey);
 
     if (cachedVocabularies) {
       results = JSON.parse(cachedVocabularies);
@@ -40,27 +38,15 @@ async function getSimpleVocabularies(req, res, next) {
         raw: true,
       });
 
-      await redisClient.json.set(
-        userSimpleVocabulariesKey,
-        ".",
-        JSON.stringify(results)
-      );
-      await redisClient.expire(userSimpleVocabulariesKey, 3600);
+      await redisService.setVocabulariesToCache(userSimpleVocabulariesKey, results);
     }
 
     // * 取得使用者單字總量
-    const userVocabulariesCountKey = `user:${userId}:vocabularies:count`;
-
-    let vocabulariesCount = await redisClient.get(userVocabulariesCountKey);
+    let vocabulariesCount = await redisService.getVocabulariesCount(userId);
 
     if (!vocabulariesCount) {
       vocabulariesCount = await Vocabulary.count({ where: { userId } });
-      await redisClient.set(
-        userVocabulariesCountKey,
-        vocabulariesCount,
-        "EX",
-        3600
-      );
+      await redisService.setVocabulariesCount(userId, vocabulariesCount);
     }
 
     res.status(200).json({

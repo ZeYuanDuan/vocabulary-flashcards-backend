@@ -1,5 +1,4 @@
 const db = require("../../../models/mysql");
-const { redisClient } = require("../../../models/redis");
 const Vocabulary = db.Vocabulary;
 
 const {
@@ -12,6 +11,7 @@ const {
   processVocabularyTags,
   removeVocabularyTags,
 } = require("../../../services/vocabulary-services/tagService");
+const redisService = require("../../../services/vocabulary-services/redisService");
 
 async function patchVocabularies(req, res, next) {
   const { id: vocabularyId } = req.params;
@@ -42,8 +42,7 @@ async function patchVocabularies(req, res, next) {
     await removeVocabularyTags(vocabularyId);
     await processVocabularyTags(tags, userId, vocabularyId);
 
-    const userVocabulariesKey = `user:${userId}:vocabularies`;
-    await redisClient.del(userVocabulariesKey);
+    await redisService.deleteVocabulariesFromCache(userId);
 
     res.status(200).json({
       message: `單字 ID ${vocabularyId} 更新成功`,

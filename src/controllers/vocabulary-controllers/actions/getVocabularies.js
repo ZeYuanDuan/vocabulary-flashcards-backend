@@ -1,12 +1,13 @@
 const db = require("../../../models/mysql");
-const { redisClient } = require("../../../models/redis");
 const Vocabulary = db.Vocabulary;
 const Tag = db.Tag;
 const Vocabulary_Tag = db.Vocabulary_Tag;
 
-const SYSTEM_TAG_PREFIX = "__";
-const USER_TAG_PREFIX = "user_";
-const NO_TAG_NAME = `${SYSTEM_TAG_PREFIX}NoTag`;
+const redisService = require("../../../services/vocabulary-services/redisService");
+const {
+  USER_TAG_PREFIX,
+  NO_TAG_NAME,
+} = require("../../../services/vocabulary-services/tagService");
 
 async function getVocabularies(req, res, next) {
   const userId = req.user.id;
@@ -14,19 +15,15 @@ async function getVocabularies(req, res, next) {
   try {
     let results = [];
 
-    const userVocabulariesKey = `user:${userId}:vocabularies`;
-    const cachedVocabularies = await redisClient.json.get(userVocabulariesKey);
+    const cachedVocabularies = await redisService.getVocabulariesFromCache(
+      userId
+    );
 
     if (cachedVocabularies) {
       results = JSON.parse(cachedVocabularies);
     } else {
       results = await fetchAndCacheTagsAndVocabulariesFromMySQL(userId);
-      await redisClient.json.set(
-        userVocabulariesKey,
-        ".",
-        JSON.stringify(results)
-      );
-      await redisClient.expire(userVocabulariesKey, 3600);
+      await redisService.setVocabulariesToCache(userId, results);
     }
 
     // * 確保 NO_TAG_NAME 的標籤總是出現在第一個位置
@@ -37,18 +34,11 @@ async function getVocabularies(req, res, next) {
     }
 
     // * 取得使用者單字總量
-    const userVocabulariesCountKey = `user:${userId}:vocabularies:count`;
-
-    let vocabulariesCount = await redisClient.get(userVocabulariesCountKey);
+    let vocabulariesCount = await redisService.getVocabulariesCount(userId);
 
     if (!vocabulariesCount) {
       vocabulariesCount = await Vocabulary.count({ where: { userId } });
-      await redisClient.set(
-        userVocabulariesCountKey,
-        vocabulariesCount,
-        "EX",
-        3600
-      );
+      await redisService.setVocabulariesCount(userId, vocabulariesCount);
     }
 
     res.status(200).json({
@@ -59,14 +49,11 @@ async function getVocabularies(req, res, next) {
     });
   } catch (error) {
     console.error("顯示 Redis 單字資料出現錯誤", error);
-    await redisClient.rPush(
-      "errorQueue",
-      JSON.stringify({
-        action: "getVocabularies",
-        userId,
-        error: error.message,
-      })
-    );
+    await redisService.pushToErrorQueue({
+      action: "getVocabularies",
+      userId,
+      error: error.message,
+    });
     next(error);
   }
 }
@@ -137,14 +124,11 @@ const fetchAndCacheTagsAndVocabulariesFromMySQL = async (userId) => {
     );
   } catch (mySQLError) {
     console.error("從 MySQL 獲取並緩存標籤和單字出現錯誤：", mySQLError);
-    await redisClient.rPush(
-      "errorQueue",
-      JSON.stringify({
-        action: "fetchAndCacheTagsAndVocabulariesFromMySQL",
-        userId,
-        error: mySQLError.message,
-      })
-    );
+    await redisService.pushToErrorQueue({
+      action: "fetchAndCacheTagsAndVocabulariesFromMySQL",
+      userId,
+      error: mySQLError.message,
+    });
     throw mySQLError;
   }
   return results;
