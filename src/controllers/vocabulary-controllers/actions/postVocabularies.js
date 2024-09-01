@@ -1,17 +1,16 @@
 const db = require("../../../models/mysql");
 const { redisClient } = require("../../../models/redis");
 const Vocabulary = db.Vocabulary;
-const Tag = db.Tag;
-const Vocabulary_Tag = db.Vocabulary_Tag;
 
 const {
   filterUndefined,
 } = require("../../../services/vocabulary-services/filterUndefined");
-const { getTaipeiTime } = require("../../../services/vocabulary-services/timeService");
-
-const SYSTEM_TAG_PREFIX = "__";
-const USER_TAG_PREFIX = "user_";
-const NO_TAG_NAME = `${SYSTEM_TAG_PREFIX}NoTag`;
+const {
+  getTaipeiTime,
+} = require("../../../services/vocabulary-services/timeService");
+const {
+  processVocabularyTags,
+} = require("../../../services/vocabulary-services/tagService");
 
 async function postVocabularies(req, res, next) {
   const { english, chinese, definition, example, tags } = req.body;
@@ -33,23 +32,9 @@ async function postVocabularies(req, res, next) {
 
   try {
     const mysqlField = await Vocabulary.create(filterUndefined(dataField));
-    const { id } = mysqlField;
+    const { id: vocabularyId } = mysqlField;
 
-    // * 處理標籤
-    const uniqueTags = [...new Set(tags)];
-    let tagList =
-      Array.isArray(uniqueTags) && uniqueTags.length > 0
-        ? uniqueTags.map((tag) => USER_TAG_PREFIX + tag)
-        : [NO_TAG_NAME];
-    for (const tagName of tagList) {
-      let tag = await Tag.findOne({
-        where: { name: tagName, userId: userId },
-      });
-      if (!tag) {
-        tag = await Tag.create({ name: tagName, userId: userId });
-      }
-      await Vocabulary_Tag.create({ tagId: tag.id, vocabularyId: id });
-    }
+    await processVocabularyTags(tags, userId, vocabularyId);
 
     const userVocabulariesKey = `user:${userId}:vocabularies`;
     await redisClient.del(userVocabulariesKey);
@@ -60,7 +45,7 @@ async function postVocabularies(req, res, next) {
 
     res.status(200).json({
       message: "單字儲存成功",
-      vocabularyId: id,
+      vocabularyId: vocabularyId,
     });
   } catch (error) {
     console.error("更新資料庫出現錯誤：", error);
