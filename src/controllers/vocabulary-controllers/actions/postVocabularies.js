@@ -10,6 +10,7 @@ const {
 const redisService = require("../../../services/vocabulary-services/redisService");
 const mysqlService = require("../../../services/vocabulary-services/mysqlService");
 const { formatResponse } = require("../../../services/vocabulary-services/responseService");
+const { handleError } = require("../../../services/vocabulary-services/errorService");
 
 async function postVocabularies(req, res, next) {
   const { english, chinese, definition, example, tags } = req.body;
@@ -40,8 +41,7 @@ async function postVocabularies(req, res, next) {
 
     res.status(200).json(formatResponse("success", userId, null, { vocabularyId }));
   } catch (error) {
-    console.error("更新資料庫出現錯誤：", error);
-    next(error);
+    await handleError(error, "postVocabularies", userId, next);
   }
 }
 

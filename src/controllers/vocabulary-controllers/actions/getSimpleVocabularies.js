@@ -2,6 +2,7 @@ const redisService = require("../../../services/vocabulary-services/redisService
 const mysqlService = require("../../../services/vocabulary-services/mysqlService");
 const { calculatePagination } = require("../../../services/vocabulary-services/paginationService");
 const { formatResponse } = require("../../../services/vocabulary-services/responseService");
+const { handleError } = require("../../../services/vocabulary-services/errorService");
 
 async function getSimpleVocabularies(req, res, next) {
   const userId = req.user.id;
@@ -39,8 +40,7 @@ async function getSimpleVocabularies(req, res, next) {
 
     res.status(200).json(formatResponse("success", userId, vocabulariesCount, results));
   } catch (error) {
-    console.error("從 MySQL 獲取單字出現錯誤：", error);
-    next(error);
+    await handleError(error, "getSimpleVocabularies", userId, next);
   }
 }
 

@@ -1,6 +1,7 @@
 const redisService = require("../../../services/vocabulary-services/redisService");
 const mysqlService = require("../../../services/vocabulary-services/mysqlService");
 const { formatResponse } = require("../../../services/vocabulary-services/responseService");
+const { handleError } = require("../../../services/vocabulary-services/errorService");
 
 async function getVocabularies(req, res, next) {
   const userId = req.user.id;
@@ -28,13 +29,7 @@ async function getVocabularies(req, res, next) {
 
     res.status(200).json(formatResponse("success", userId, vocabulariesCount, results));
   } catch (error) {
-    console.error("顯示 Redis 單字資料出現錯誤", error);
-    await redisService.pushToErrorQueue({
-      action: "getVocabularies",
-      userId,
-      error: error.message,
-    });
-    next(error);
+    await handleError(error, "getVocabularies", userId, next);
   }
 }
 

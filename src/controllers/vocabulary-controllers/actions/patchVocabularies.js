@@ -11,6 +11,7 @@ const {
 const redisService = require("../../../services/vocabulary-services/redisService");
 const mysqlService = require("../../../services/vocabulary-services/mysqlService");
 const { formatResponse } = require("../../../services/vocabulary-services/responseService");
+const { handleError } = require("../../../services/vocabulary-services/errorService");
 
 async function patchVocabularies(req, res, next) {
   const { id: vocabularyId } = req.params;
@@ -41,8 +42,7 @@ async function patchVocabularies(req, res, next) {
 
     res.status(200).json(formatResponse("success", userId, null, { message: `單字 ID ${vocabularyId} 更新成功` }));
   } catch (error) {
-    console.error("更新資料庫出現錯誤：", error);
-    next(error);
+    await handleError(error, "patchVocabularies", userId, next);
   }
 }
 
