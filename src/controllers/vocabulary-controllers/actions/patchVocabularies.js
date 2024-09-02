@@ -1,6 +1,3 @@
-const db = require("../../../models/mysql");
-const Vocabulary = db.Vocabulary;
-
 const {
   filterUndefined,
 } = require("../../../services/vocabulary-services/filterUndefined");
@@ -12,6 +9,10 @@ const {
   removeVocabularyTags,
 } = require("../../../services/vocabulary-services/tagService");
 const redisService = require("../../../services/vocabulary-services/redisService");
+const {
+  updateVocabulary,
+  getVocabularyById, 
+} = require("../../../services/vocabulary-services/mysqlService");
 
 async function patchVocabularies(req, res, next) {
   const { id: vocabularyId } = req.params;
@@ -28,16 +29,12 @@ async function patchVocabularies(req, res, next) {
   };
 
   try {
-    const vocabulary = await Vocabulary.findOne({
-      where: { id: vocabularyId, userId },
-    });
+    const vocabulary = await getVocabularyById(vocabularyId, userId);
     if (!vocabulary) {
       return res.status(404).json({ message: `找不到單字 ID ${vocabularyId}` });
     }
 
-    await Vocabulary.update(filterUndefined(updateField), {
-      where: { id: vocabularyId, userId },
-    });
+    await updateVocabulary(filterUndefined(updateField), vocabularyId, userId);
 
     await removeVocabularyTags(vocabularyId);
     await processVocabularyTags(tags, userId, vocabularyId);

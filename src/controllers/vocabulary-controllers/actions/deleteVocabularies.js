@@ -1,21 +1,25 @@
-const db = require("../../../models/mysql");
-const Vocabulary = db.Vocabulary;
 const redisService = require("../../../services/vocabulary-services/redisService");
-const { removeVocabularyTags } = require("../../../services/vocabulary-services/tagService");
+const {
+  removeVocabularyTags,
+} = require("../../../services/vocabulary-services/tagService");
+const {
+  getVocabularyById,
+  deleteVocabulary,
+} = require("../../../services/vocabulary-services/mysqlService");
 
 async function deleteVocabularies(req, res, next) {
   const { id } = req.params;
   const userId = req.user.id;
 
   try {
-    const vocabulary = await Vocabulary.findOne({ where: { id, userId } });
+    const vocabulary = await getVocabularyById(id, userId);
     if (!vocabulary) {
       return res.status(404).json({ message: `找不到單字 ID ${id}` });
     }
 
     await removeVocabularyTags(id);
 
-    await Vocabulary.destroy({ where: { id, userId } });
+    await deleteVocabulary(id, userId);
 
     await redisService.deleteVocabulariesFromCache(userId);
     await redisService.decrementVocabulariesCount(userId);

@@ -1,6 +1,3 @@
-const db = require("../../../models/mysql");
-const Vocabulary = db.Vocabulary;
-
 const {
   filterUndefined,
 } = require("../../../services/vocabulary-services/filterUndefined");
@@ -11,6 +8,9 @@ const {
   processVocabularyTags,
 } = require("../../../services/vocabulary-services/tagService");
 const redisService = require("../../../services/vocabulary-services/redisService");
+const {
+  createVocabulary,
+} = require("../../../services/vocabulary-services/mysqlService");
 
 async function postVocabularies(req, res, next) {
   const { english, chinese, definition, example, tags } = req.body;
@@ -31,7 +31,7 @@ async function postVocabularies(req, res, next) {
   };
 
   try {
-    const mysqlField = await Vocabulary.create(filterUndefined(dataField));
+    const mysqlField = await createVocabulary(filterUndefined(dataField));
     const { id: vocabularyId } = mysqlField;
 
     await processVocabularyTags(tags, userId, vocabularyId);

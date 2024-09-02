@@ -1,6 +1,8 @@
-const db = require("../../../models/mysql");
-const Vocabulary = db.Vocabulary;
 const redisService = require("../../../services/vocabulary-services/redisService");
+const {
+  getSimpleVocabulariesFromMySQL,
+  countVocabularies,
+} = require("../../../services/vocabulary-services/mysqlService");
 
 async function getSimpleVocabularies(req, res, next) {
   const userId = req.user.id;
@@ -8,7 +10,7 @@ async function getSimpleVocabularies(req, res, next) {
   let end = parseInt(req.query.end, 10) || -1;
 
   try {
-    const totalRecords = await Vocabulary.count({ where: { userId } });
+    const totalRecords = await countVocabularies(userId);
 
     if (isNaN(start) || start < 0) {
       start = 0;
@@ -22,30 +24,19 @@ async function getSimpleVocabularies(req, res, next) {
 
     let results = [];
 
-    // * 檢查 Redis 快取
-    const userSimpleVocabulariesKey = redisService.getUserSimpleVocabulariesKey(userId, start, end);
-    const cachedVocabularies = await redisService.getVocabulariesFromCache(userSimpleVocabulariesKey);
+    const cachedVocabularies = await redisService.getUserSimpleVocabularies(userId, start, end);
 
     if (cachedVocabularies) {
       results = JSON.parse(cachedVocabularies);
     } else {
-      // * 從 MySQL 中獲取單字詳細資料
-      results = await Vocabulary.findAll({
-        where: { userId },
-        attributes: { exclude: ["userId"] },
-        offset: start,
-        limit: limit > 0 ? limit : undefined,
-        raw: true,
-      });
-
-      await redisService.setVocabulariesToCache(userSimpleVocabulariesKey, results);
+      results = await getSimpleVocabulariesFromMySQL(userId, start, limit);
+      await redisService.setSimpleVocabulariesToCache(userId, start, end, results);
     }
 
-    // * 取得使用者單字總量
     let vocabulariesCount = await redisService.getVocabulariesCount(userId);
 
     if (!vocabulariesCount) {
-      vocabulariesCount = await Vocabulary.count({ where: { userId } });
+      vocabulariesCount = await countVocabularies(userId);
       await redisService.setVocabulariesCount(userId, vocabulariesCount);
     }
 
