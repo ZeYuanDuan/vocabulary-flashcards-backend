@@ -1,4 +1,5 @@
-const { redisClient } = require("../../models/redis");
+// * Redis 資料庫邏輯
+const { redisClient } = require("../../../models/redis");
 
 const KEYS = {
   USER_VOCABULARIES: (userId) => `user:${userId}:vocabularies`,

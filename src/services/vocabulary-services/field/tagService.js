@@ -1,4 +1,5 @@
-const db = require("../../models/mysql");
+// * 處理單字標籤標籤
+const db = require("../../../models/mysql");
 const Tag = db.Tag;
 const Vocabulary_Tag = db.Vocabulary_Tag;
 

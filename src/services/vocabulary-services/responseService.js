@@ -1,3 +1,4 @@
+// * 整理回傳資料結構
 const formatResponse = (status, userId, vocStorage, data) => {
   return {
     status,

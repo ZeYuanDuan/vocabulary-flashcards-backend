@@ -1,3 +1,4 @@
+// * 進行單字分頁
 const calculatePagination = (query, totalRecords) => {
   let start = parseInt(query.start, 10) || 0;
   let end = parseInt(query.end, 10) || -1;

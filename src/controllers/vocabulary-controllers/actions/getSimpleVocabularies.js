@@ -1,8 +1,14 @@
-const redisService = require("../../../services/vocabulary-services/redisService");
-const mysqlService = require("../../../services/vocabulary-services/mysqlService");
-const { calculatePagination } = require("../../../services/vocabulary-services/paginationService");
-const { formatResponse } = require("../../../services/vocabulary-services/responseService");
-const { handleError } = require("../../../services/vocabulary-services/errorService");
+const redisService = require("../../../services/vocabulary-services/storage/redisService");
+const mysqlService = require("../../../services/vocabulary-services/storage/mysqlService");
+const {
+  calculatePagination,
+} = require("../../../services/vocabulary-services/utils/pagination");
+const {
+  formatResponse,
+} = require("../../../services/vocabulary-services/responseService");
+const {
+  handleError,
+} = require("../../../services/vocabulary-services/errorService");
 
 // ======================================================
 
@@ -24,7 +30,11 @@ async function getSimpleVocabularies(req, res, next) {
     if (cachedVocabularies) {
       results = JSON.parse(cachedVocabularies);
     } else {
-      results = await mysqlService.getSimpleVocabulariesFromMySQL(userId, start, limit);
+      results = await mysqlService.getSimpleVocabulariesFromMySQL(
+        userId,
+        start,
+        limit
+      );
       await redisService.setSimpleVocabulariesToCache(
         userId,
         start,
@@ -40,7 +50,9 @@ async function getSimpleVocabularies(req, res, next) {
       await redisService.setVocabulariesCount(userId, vocabulariesCount);
     }
 
-    res.status(200).json(formatResponse("success", userId, vocabulariesCount, results));
+    res
+      .status(200)
+      .json(formatResponse("success", userId, vocabulariesCount, results));
   } catch (error) {
     await handleError(error, "getSimpleVocabularies", userId, next);
   }

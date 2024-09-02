@@ -1,4 +1,5 @@
-const { getTaipeiTime } = require("./timeService");
+// * 整理單字資料結構
+const { getTaipeiTime } = require("../utils/timeZone");
 
 function createDataField({ english, chinese, definition, example, userId }) {
   const currentTime = getTaipeiTime();

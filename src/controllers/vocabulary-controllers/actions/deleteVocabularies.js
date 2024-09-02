@@ -1,11 +1,11 @@
-const redisService = require("../../../services/vocabulary-services/redisService");
-const mysqlService = require("../../../services/vocabulary-services/mysqlService");
+const redisService = require("../../../services/vocabulary-services/storage/redisService");
+const mysqlService = require("../../../services/vocabulary-services/storage/mysqlService");
 const {
   validateVocabularyExistence,
-} = require("../../../services/vocabulary-services/validationService");
+} = require("../../../services/vocabulary-services/field/validationService");
 const {
   removeVocabularyTags,
-} = require("../../../services/vocabulary-services/tagService");
+} = require("../../../services/vocabulary-services/field/tagService");
 const {
   formatVocabularyDeletedResponse,
 } = require("../../../services/vocabulary-services/responseService");

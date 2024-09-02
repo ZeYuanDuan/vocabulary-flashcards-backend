@@ -1,4 +1,5 @@
-const db = require("../../models/mysql");
+// * MySQL 資料庫邏輯
+const db = require("../../../models/mysql");
 const Vocabulary = db.Vocabulary;
 const Tag = db.Tag;
 
@@ -7,7 +8,7 @@ const {
   NO_TAG_NAME,
   createOrFindTag,
   associateVocabularyWithTag,
-} = require("./tagService");
+} = require("../field/tagService");
 
 const getVocabulariesFromMySQL = async (userId) => {
   let results = [];

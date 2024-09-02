@@ -1,3 +1,4 @@
+// * 驗證資料正確性
 function validateVocabularyExistence(vocabulary, vocabularyId, res) {
   if (!vocabulary) {
     res.status(404).json({ message: `找不到單字 ID ${vocabularyId}` });

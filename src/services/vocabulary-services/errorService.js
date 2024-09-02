@@ -1,4 +1,5 @@
-const redisService = require("./redisService");
+// * 處理錯誤
+const redisService = require("./storage/redisService");
 
 const handleError = async (error, action, userId, next) => {
   console.error(`單字 CURD 出現錯誤: ${error.message}`);

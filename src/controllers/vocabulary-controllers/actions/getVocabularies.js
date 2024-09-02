@@ -1,7 +1,11 @@
-const redisService = require("../../../services/vocabulary-services/redisService");
-const mysqlService = require("../../../services/vocabulary-services/mysqlService");
-const { formatResponse } = require("../../../services/vocabulary-services/responseService");
-const { handleError } = require("../../../services/vocabulary-services/errorService");
+const redisService = require("../../../services/vocabulary-services/storage/redisService");
+const mysqlService = require("../../../services/vocabulary-services/storage/mysqlService");
+const {
+  formatResponse,
+} = require("../../../services/vocabulary-services/responseService");
+const {
+  handleError,
+} = require("../../../services/vocabulary-services/errorService");
 
 // ======================================================
 
@@ -29,7 +33,9 @@ async function getVocabularies(req, res, next) {
       await redisService.setVocabulariesCount(userId, vocabulariesCount);
     }
 
-    res.status(200).json(formatResponse("success", userId, vocabulariesCount, results));
+    res
+      .status(200)
+      .json(formatResponse("success", userId, vocabulariesCount, results));
   } catch (error) {
     await handleError(error, "getVocabularies", userId, next);
   }

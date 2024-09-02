@@ -1,17 +1,17 @@
-const redisService = require("../../../services/vocabulary-services/redisService");
-const mysqlService = require("../../../services/vocabulary-services/mysqlService");
+const redisService = require("../../../services/vocabulary-services/storage/redisService");
+const mysqlService = require("../../../services/vocabulary-services/storage/mysqlService");
 const {
   createDataField,
-} = require("../../../services/vocabulary-services/fieldService");
+} = require("../../../services/vocabulary-services/field/fieldService");
 const {
   filterUndefined,
-} = require("../../../services/vocabulary-services/filterUndefined");
+} = require("../../../services/vocabulary-services/utils/filterUndefined");
 const {
   validateEnglishField,
-} = require("../../../services/vocabulary-services/validationService");
+} = require("../../../services/vocabulary-services/field/validationService");
 const {
   processVocabularyTags,
-} = require("../../../services/vocabulary-services/tagService");
+} = require("../../../services/vocabulary-services/field/tagService");
 const {
   formatVocabularyCreatedResponse,
 } = require("../../../services/vocabulary-services/responseService");
