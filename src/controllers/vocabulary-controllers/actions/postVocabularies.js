@@ -8,9 +8,8 @@ const {
   processVocabularyTags,
 } = require("../../../services/vocabulary-services/tagService");
 const redisService = require("../../../services/vocabulary-services/redisService");
-const {
-  createVocabulary,
-} = require("../../../services/vocabulary-services/mysqlService");
+const mysqlService = require("../../../services/vocabulary-services/mysqlService");
+const { formatResponse } = require("../../../services/vocabulary-services/responseService");
 
 async function postVocabularies(req, res, next) {
   const { english, chinese, definition, example, tags } = req.body;
@@ -31,7 +30,7 @@ async function postVocabularies(req, res, next) {
   };
 
   try {
-    const mysqlField = await createVocabulary(filterUndefined(dataField));
+    const mysqlField = await mysqlService.createVocabulary(filterUndefined(dataField));
     const { id: vocabularyId } = mysqlField;
 
     await processVocabularyTags(tags, userId, vocabularyId);
@@ -39,10 +38,7 @@ async function postVocabularies(req, res, next) {
     await redisService.deleteVocabulariesFromCache(userId);
     await redisService.incrementVocabulariesCount(userId);
 
-    res.status(200).json({
-      message: "單字儲存成功",
-      vocabularyId: vocabularyId,
-    });
+    res.status(200).json(formatResponse("success", userId, null, { vocabularyId }));
   } catch (error) {
     console.error("更新資料庫出現錯誤：", error);
     next(error);

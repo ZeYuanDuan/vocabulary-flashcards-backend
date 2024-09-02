@@ -1,8 +1,6 @@
 const redisService = require("../../../services/vocabulary-services/redisService");
-const {
-  getVocabulariesFromMySQL,
-  countVocabularies,
-} = require("../../../services/vocabulary-services/mysqlService");
+const mysqlService = require("../../../services/vocabulary-services/mysqlService");
+const { formatResponse } = require("../../../services/vocabulary-services/responseService");
 
 async function getVocabularies(req, res, next) {
   const userId = req.user.id;
@@ -17,23 +15,18 @@ async function getVocabularies(req, res, next) {
     if (cachedVocabularies) {
       results = JSON.parse(cachedVocabularies);
     } else {
-      results = await getVocabulariesFromMySQL(userId);
+      results = await mysqlService.getVocabulariesFromMySQL(userId);
       await redisService.setVocabulariesToCache(userId, results);
     }
 
     let vocabulariesCount = await redisService.getVocabulariesCount(userId);
 
     if (!vocabulariesCount) {
-      vocabulariesCount = await countVocabularies(userId);
+      vocabulariesCount = await mysqlService.countVocabularies(userId);
       await redisService.setVocabulariesCount(userId, vocabulariesCount);
     }
 
-    res.status(200).json({
-      status: "success",
-      userId: userId,
-      vocStorage: Number(vocabulariesCount),
-      data: results,
-    });
+    res.status(200).json(formatResponse("success", userId, vocabulariesCount, results));
   } catch (error) {
     console.error("顯示 Redis 單字資料出現錯誤", error);
     await redisService.pushToErrorQueue({
