@@ -3,6 +3,8 @@ const mysqlService = require("../../../services/vocabulary-services/mysqlService
 const { formatResponse } = require("../../../services/vocabulary-services/responseService");
 const { handleError } = require("../../../services/vocabulary-services/errorService");
 
+// ======================================================
+
 async function getVocabularies(req, res, next) {
   const userId = req.user.id;
 

@@ -4,6 +4,8 @@ const { calculatePagination } = require("../../../services/vocabulary-services/p
 const { formatResponse } = require("../../../services/vocabulary-services/responseService");
 const { handleError } = require("../../../services/vocabulary-services/errorService");
 
+// ======================================================
+
 async function getSimpleVocabularies(req, res, next) {
   const userId = req.user.id;
 

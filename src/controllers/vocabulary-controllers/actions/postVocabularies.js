@@ -1,37 +1,44 @@
+const redisService = require("../../../services/vocabulary-services/redisService");
+const mysqlService = require("../../../services/vocabulary-services/mysqlService");
+const {
+  createDataField,
+} = require("../../../services/vocabulary-services/fieldService");
 const {
   filterUndefined,
 } = require("../../../services/vocabulary-services/filterUndefined");
 const {
-  getTaipeiTime,
-} = require("../../../services/vocabulary-services/timeService");
+  validateEnglishField,
+} = require("../../../services/vocabulary-services/validationService");
 const {
   processVocabularyTags,
 } = require("../../../services/vocabulary-services/tagService");
-const redisService = require("../../../services/vocabulary-services/redisService");
-const mysqlService = require("../../../services/vocabulary-services/mysqlService");
-const { formatResponse } = require("../../../services/vocabulary-services/responseService");
-const { handleError } = require("../../../services/vocabulary-services/errorService");
+const {
+  formatVocabularyCreatedResponse,
+} = require("../../../services/vocabulary-services/responseService");
+const {
+  handleError,
+} = require("../../../services/vocabulary-services/errorService");
+
+// ======================================================
 
 async function postVocabularies(req, res, next) {
   const { english, chinese, definition, example, tags } = req.body;
 
-  if (!english) {
-    return res.status(400).json({ message: "未加入英文單字" });
-  }
+  if (!validateEnglishField(english, res)) return;
 
   const userId = req.user.id;
-  const dataField = {
+  const dataField = createDataField({
     english,
     chinese,
     definition,
     example,
     userId,
-    createdAt: getTaipeiTime(),
-    updatedAt: getTaipeiTime(),
-  };
+  });
 
   try {
-    const mysqlField = await mysqlService.createVocabulary(filterUndefined(dataField));
+    const mysqlField = await mysqlService.createVocabulary(
+      filterUndefined(dataField)
+    );
     const { id: vocabularyId } = mysqlField;
 
     await processVocabularyTags(tags, userId, vocabularyId);
@@ -39,7 +46,7 @@ async function postVocabularies(req, res, next) {
     await redisService.deleteVocabulariesFromCache(userId);
     await redisService.incrementVocabulariesCount(userId);
 
-    res.status(200).json(formatResponse("success", userId, null, { vocabularyId }));
+    res.status(200).json(formatVocabularyCreatedResponse(vocabularyId));
   } catch (error) {
     await handleError(error, "postVocabularies", userId, next);
   }
