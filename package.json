@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node src/app.js",
     "env": "cross-env NODE_ENV=development",
-    "migrate": "npx sequelize-cli db:migrate",
+    "migrate": "npx sequelize db:migrate --migration migrations/create-tables.js",
     "seed": "npx sequelize db:seed --seed seeders/initial-data.js",
     "start-with-migrate": "npm run env && npm run migrate && npm run seed && npm run start",
     "dev": "cross-env NODE_ENV=development nodemon src/app.js"
