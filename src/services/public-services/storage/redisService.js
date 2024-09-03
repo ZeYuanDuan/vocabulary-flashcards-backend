@@ -53,8 +53,16 @@ const redisService = {
     await redisClient.expire(tempKey, TEMP_KEY_EXPIRATION);
   },
 
-  pushToErrorQueue: async (error) => {
-    await redisClient.rPush(KEYS.ERROR_QUEUE, JSON.stringify(error));
+  pushToErrorQueue: async (action, key, dataField, error) => {
+    const currentDate = moment().tz("Asia/Taipei").toISOString();
+    const errorObject = {
+      action,
+      key,
+      dataField,
+      date: currentDate,
+      error: error.message,
+    };
+    await redisClient.rPush(KEYS.ERROR_QUEUE, JSON.stringify(errorObject));
   },
 };
 

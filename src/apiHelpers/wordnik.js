@@ -1,4 +1,4 @@
-const VOC_LIMIT = 1; // !測試
+const VOC_LIMIT = 20;
 
 function generateWordnikURL() {
   const baseUrl = "https://api.wordnik.com/v4/words.json/randomWords";
