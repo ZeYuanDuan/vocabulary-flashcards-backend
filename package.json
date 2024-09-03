@@ -1,8 +1,8 @@
 {
-  "name": "voc-backend-sql",
+  "name": "vocab-memorizer-backend",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Vocabulary Memorizer Backend",
+  "main": "src/app.js",
   "scripts": {
     "start": "cross-env NODE_ENV=production node src/app.js",
     "migrate": "npx sequelize db:migrate --migration migrations/create-tables.js",
@@ -10,7 +10,7 @@
     "start-with-migrate": "npm run env && npm run migrate && npm run seed && npm run start",
     "dev": "cross-env NODE_ENV=development nodemon src/app.js"
   },
-  "author": "",
+  "author": "Ze-Yuan, Duan",
   "license": "ISC",
   "dependencies": {
     "axios": "^1.7.2",
