@@ -129,10 +129,10 @@ dist
 .yarn/install-state.gz
 .pnp.*
 
-# Ignore Dockerfile
+# ! Ignore Dockerfile (PaaS 部署限定)
 Dockerfile
+.dockerignore
+docker-compose.yaml
 
-# Ignore TODO
-TODO.md
-
+# ! Ignore GitHub Actions (無 CI/CD 流程)
 .github/workflows/deploy.yml
