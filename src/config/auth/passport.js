@@ -69,11 +69,6 @@ passport.use(
         const { id: googleId, emails, displayName: name } = profile;
         const email = emails[0].value;
 
-        console.log(
-          "從 Google 拿到的資料：",
-          `googleId: ${googleId}, email: ${email}, name: ${name}`
-        );
-
         let user = await Google_User.findOne({
           attributes: ["email", "googleId", "userId"],
           where: { googleId },

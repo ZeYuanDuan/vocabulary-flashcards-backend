@@ -13,6 +13,7 @@ const {
 const getVocabulariesFromMySQL = async (userId) => {
   let results = [];
   try {
+    // * 防護機制，確保所有單字都有標籤
     const noTagVocabularies = await Vocabulary.findAll({
       where: {
         userId,

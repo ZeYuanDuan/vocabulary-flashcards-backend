@@ -1,7 +1,7 @@
 const express = require("express");
-const router = express.Router();
-
 const vocabularyController = require("../../controllers/vocabulary-controllers/index");
+
+const router = express.Router();
 
 router.get("/", vocabularyController.getVocabularies);
 router.get("/simple", vocabularyController.getSimpleVocabularies);

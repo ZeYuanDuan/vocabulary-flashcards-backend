@@ -8,6 +8,9 @@ const KEYS = {
   TEMP: () => `daily:temp:${Date.now()}`,
 };
 
+const NO_DATA_MESSAGE = '["No data available"]';
+const TEMP_KEY_EXPIRATION = 86400;
+
 const redisService = {
   getTodayDailyVocabularies: async () => {
     const todayDailyVocabularies = await redisClient.lRange(
@@ -40,14 +43,14 @@ const redisService = {
   updateDailyVocabularies: async () => {
     const tempKey = KEYS.TEMP();
     if (!(await redisClient.exists(KEYS.DAILY_TODAY))) {
-      await redisClient.lPush(KEYS.DAILY_TODAY, '["No data available"]');
+      await redisClient.lPush(KEYS.DAILY_TODAY, NO_DATA_MESSAGE);
     } else if (!(await redisClient.exists(KEYS.DAILY_DETAILS))) {
-      await redisClient.lPush(KEYS.DAILY_DETAILS, '["No data available"]');
+      await redisClient.lPush(KEYS.DAILY_DETAILS, NO_DATA_MESSAGE);
     }
 
     await redisClient.rename(KEYS.DAILY_TODAY, tempKey);
     await redisClient.rename(KEYS.DAILY_DETAILS, KEYS.DAILY_TODAY);
-    await redisClient.expire(tempKey, 86400);
+    await redisClient.expire(tempKey, TEMP_KEY_EXPIRATION);
   },
 
   pushToErrorQueue: async (error) => {

@@ -2,13 +2,15 @@ const db = require("../models/mysql");
 const { Vocabulary, User } = db;
 const jwt = require("jsonwebtoken");
 
+const JWT_EXPIRATION = "7d";
+
 const generateTokenAndUserInfo = async (userId) => {
   if (!process.env.JWT_SECRET) {
     throw new Error("未定義 JWT_SECRET");
   }
 
   const token = jwt.sign({ userId }, process.env.JWT_SECRET, {
-    expiresIn: "7d",
+    expiresIn: JWT_EXPIRATION,
   });
   const { id, name } = await User.findByPk(userId);
   const vocStorage = await Vocabulary.count({ where: { userId: id } });

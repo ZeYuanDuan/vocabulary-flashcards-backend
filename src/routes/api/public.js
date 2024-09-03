@@ -1,6 +1,7 @@
 const express = require("express");
-const router = express.Router();
 const publicController = require("../../controllers/public-controller.js");
+
+const router = express.Router();
 
 router.get("/daily-vocabularies", publicController.getDailyVocabularies);
 

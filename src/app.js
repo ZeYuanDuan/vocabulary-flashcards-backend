@@ -29,7 +29,7 @@ app.use(errorHandler);
 // 初始化定時任務
 setupCronJobs();
 
-// 啟動服務器
+// 啟動伺服器
 app.listen(port, "0.0.0.0", () => {
   console.log(`伺服器正在運行於 http://localhost:${port}`);
 });
