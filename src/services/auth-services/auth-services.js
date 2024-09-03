@@ -19,8 +19,14 @@ const generateTokenAndUserInfo = async (userId) => {
 };
 
 const handleAuthResult = async (err, user, info, res, next) => {
-  if (err || !user) {
-    return res.status(401).json({ message: info?.error_message || "驗證失敗" });
+  if (err) {
+    return next(err);
+  }
+
+  if (!user) {
+    const error = new Error(info?.error_message || "驗證失敗");
+    error.statusCode = 401;
+    return next(error);
   }
 
   try {
@@ -35,7 +41,6 @@ const handleAuthResult = async (err, user, info, res, next) => {
       token,
     });
   } catch (error) {
-    console.error("驗證錯誤:", error);
     next(error);
   }
 };

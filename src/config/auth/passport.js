@@ -48,8 +48,6 @@ passport.use(
 
         return done(null, user, { success_message: "歡迎登入" });
       } catch (error) {
-        console.error(error);
-        error.message = "登入失敗";
         return done(error);
       }
     }
@@ -88,7 +86,6 @@ passport.use(
 
         return done(null, user, { success_message: "歡迎登入" });
       } catch (error) {
-        console.error(error);
         error.message = "Google 登入失敗";
         return done(error);
       }

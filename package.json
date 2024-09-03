@@ -9,8 +9,7 @@
     "migrate": "npx sequelize-cli db:migrate",
     "seed": "npx sequelize db:seed:all",
     "start-with-migrate": "npm run env && npm run migrate && npm run seed && npm run start",
-    "dev": "cross-env NODE_ENV=development nodemon src/app.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "cross-env NODE_ENV=development nodemon src/app.js"
   },
   "author": "",
   "license": "ISC",
@@ -37,7 +36,8 @@
     "redis": "^4.6.14",
     "sequelize": "^6.37.3",
     "sequelize-cli": "^6.6.2",
-    "url": "^0.11.3"
+    "url": "^0.11.3",
+    "winston": "^3.14.2"
   },
   "devDependencies": {
     "@babel/cli": "^7.25.6",
