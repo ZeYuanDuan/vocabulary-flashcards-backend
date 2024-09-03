@@ -8,6 +8,16 @@ module.exports = (sequelize, DataTypes) => {
         foreignKey: "userId",
         as: "googleUser",
       });
+      User.hasMany(models.Vocabulary, {
+        foreignKey: "userId",
+        as: "vocabularies",
+        onDelete: "CASCADE",
+      });
+      User.hasMany(models.Tag, {
+        foreignKey: "userId",
+        as: "tags",
+        onDelete: "CASCADE",
+      });
     }
   }
   User.init(
