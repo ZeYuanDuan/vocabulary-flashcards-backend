@@ -25,7 +25,7 @@ module.exports = (sequelize, DataTypes) => {
   Vocabulary.init(
     {
       id: {
-        type: DataTypes.BIGINT,
+        type: DataTypes.INTEGER,
         autoIncrement: true,
         primaryKey: true,
         allowNull: false,
@@ -45,7 +45,7 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: true,
       },
       userId: {
-        type: DataTypes.BIGINT,
+        type: DataTypes.INTEGER,
         allowNull: false,
         references: {
           model: "users",

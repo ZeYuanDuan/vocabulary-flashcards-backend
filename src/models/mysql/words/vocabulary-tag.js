@@ -17,14 +17,14 @@ module.exports = (sequelize, DataTypes) => {
   Vocabulary_Tag.init(
     {
       id: {
-        type: DataTypes.BIGINT,
+        type: DataTypes.INTEGER,
         autoIncrement: true,
         primaryKey: true,
         allowNull: false,
         unique: true,
       },
       tagId: {
-        type: DataTypes.BIGINT,
+        type: DataTypes.INTEGER,
         allowNull: false,
         references: {
           model: "tags",
@@ -33,7 +33,7 @@ module.exports = (sequelize, DataTypes) => {
         onDelete: "CASCADE",
       },
       vocabularyId: {
-        type: DataTypes.BIGINT,
+        type: DataTypes.INTEGER,
         allowNull: false,
         references: {
           model: "vocabularies",

@@ -5,6 +5,8 @@ if (process.env.NODE_ENV !== "production") {
   require("dotenv").config();
 }
 
+const REDIS_MAX_CONNECTIONS = 20;
+
 const redisClient = createClient({
   password: process.env.REDIS_PASSWORD,
   socket: {
@@ -16,7 +18,7 @@ const redisClient = createClient({
   },
   maxRetriesPerRequest: null, // 不限制重試次數
   enableOfflineQueue: false, // 不啟用離線隊列
-  max_user_connections: process.env.REDIS_MAX_CONNECTIONS,
+  max_user_connections: REDIS_MAX_CONNECTIONS,
 });
 
 redisClient.on("error", (err) => {
