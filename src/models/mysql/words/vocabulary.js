@@ -3,13 +3,7 @@ const { Model } = require("sequelize");
 
 module.exports = (sequelize, DataTypes) => {
   class Vocabulary extends Model {
-    /**
-     * Helper method for defining associations.
-     * This method is not a part of Sequelize lifecycle.
-     * The `models/index` file will call this method automatically.
-     */
     static associate(models) {
-      // define association here
       Vocabulary.belongsTo(models.User, {
         foreignKey: "userId",
         as: "user",
@@ -64,7 +58,7 @@ module.exports = (sequelize, DataTypes) => {
     {
       sequelize,
       modelName: "Vocabulary",
-      tableName: "Vocabularies", // 改變資料表名稱，以對應雲端資料庫
+      tableName: "Vocabularies",
     }
   );
 
