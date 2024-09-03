@@ -1,16 +1,11 @@
 const redisService = require("../services/public-services/storage/redisService");
-const axios = require("axios");
-const moment = require("moment-timezone");
-const fetchWithRetry = require("../services/public-services/utils/fetchWithRetry");
 const {
-  generateWordnikURL,
-  generateTranslateURL,
-  generateDefinitionURL,
-  generateExampleURL,
-} = require("../apiHelpers/wordnik");
+  processWordnikData,
+  processVocabularyDetails,
+} = require("../services/public-services/apiDataProcessor");
 
 const publicControllers = {
-  // * 取得今日單字
+  // * 取得今日單字 (路由相關)
   getDailyVocabularies: async (req, res, next) => {
     try {
       const parsedVocabularies = await redisService.getTodayDailyVocabularies();
@@ -21,30 +16,10 @@ const publicControllers = {
     }
   },
 
-  // * 請求一組英文單字，加上中文翻譯，存到 raw
+  // * 請求一組英文單字，加上中文翻譯，存到 raw (cronJob 相關)
   fetchAndStoreRawVocabularies: async () => {
     try {
-      const wordnikURL = generateWordnikURL();
-      const { data } = await axios.get(wordnikURL);
-      const filteredData = data.map(({ id, ...keepAttrs }) => keepAttrs);
-      const wordSequence = filteredData.map((obj) => obj.word);
-
-      const { data: translationData } = await fetchWithRetry(
-        generateTranslateURL(wordSequence)
-      );
-
-      const today = moment().tz("Asia/Taipei");
-      const tomorrow = moment(today).add(1, "day");
-      const formattedDate = tomorrow.format("YYYY-MM-DD");
-
-      const combinedArray = filteredData.map((obj, index) => ({
-        date: formattedDate,
-        data: {
-          english: obj.word,
-          chinese: translationData.data.translations[index].translatedText,
-        },
-      }));
-
+      const combinedArray = await processWordnikData();
       await redisService.clearAndStoreRawVocabularies(combinedArray);
     } catch (error) {
       console.error("更新 Redis 時出現錯誤：", error);
@@ -58,45 +33,11 @@ const publicControllers = {
     }
   },
 
-  // * 將 raw 的單字，加上定義和例句，存到 details
+  // * 將 raw 的單字，加上定義和例句，存到 details (cronJob 相關)
   fetchAndStoreVocabularyDetails: async () => {
     try {
       const DailyVocab = await redisService.getRawDailyVocabularies();
-      const vocabularyDetails = [];
-
-      for (const { date, data } of DailyVocab) {
-        const { english, chinese } = data;
-        const { data: defData } = await fetchWithRetry(
-          generateDefinitionURL(english)
-        );
-        const rawDefinition = defData.find((def) => def?.text)?.text;
-        const definition = rawDefinition
-          ? Array.isArray(rawDefinition)
-            ? rawDefinition.join(", ").replace(/<[^>]*>/g, "")
-            : rawDefinition.replace(/<[^>]*>/g, "")
-          : "No definition available";
-
-        console.log("定義：", definition); // ! 測試用
-
-        const { data: exampleData } = await fetchWithRetry(
-          generateExampleURL(english)
-        );
-        const example = exampleData.text
-          ? Array.isArray(exampleData.text)
-            ? exampleData.text.join(", ")
-            : exampleData.text
-          : "No example available";
-
-        console.log("例句：", example); // ! 測試用
-
-        vocabularyDetails.push({
-          date: date,
-          data: { english, chinese, definition, example },
-        });
-
-        await new Promise((resolve) => setTimeout(resolve, 20000)); // * 等 20 秒
-      }
-
+      const vocabularyDetails = await processVocabularyDetails(DailyVocab);
       await redisService.clearAndStoreVocabularyDetails(vocabularyDetails);
     } catch (error) {
       console.error("獲取單字詳細資訊時出現錯誤：", error);
@@ -110,7 +51,7 @@ const publicControllers = {
     }
   },
 
-  // * 更新每日單字
+  // * 更新每日單字 (cronJob 相關)
   updateDailyVocabularies: async () => {
     try {
       await redisService.updateDailyVocabularies();

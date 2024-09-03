@@ -19,18 +19,6 @@ function generateWordnikURL() {
   return `${baseUrl}?${params.toString()}`;
 }
 
-function generateTranslateURL(keywords) {
-  const baseUrl = "https://translation.googleapis.com/language/translate/v2";
-  const params = new URLSearchParams({
-    target: "zh-TW",
-    key: process.env.GOOGLE_TRANSLATION_KEY,
-  });
-
-  keywords.forEach((keyword) => params.append("q", keyword));
-
-  return `${baseUrl}?${params.toString()}`;
-}
-
 function generateDefinitionURL(keyword) {
   const baseUrl = `https://api.wordnik.com/v4/word.json/${keyword}/definitions`;
   const params = new URLSearchParams({
@@ -55,7 +43,6 @@ function generateExampleURL(keyword) {
 
 module.exports = {
   generateWordnikURL,
-  generateTranslateURL,
   generateDefinitionURL,
   generateExampleURL,
 };
