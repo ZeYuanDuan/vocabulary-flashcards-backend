@@ -1,7 +1,8 @@
-const allowedOrigins = [
-  "http://localhost:3000",
-  "https://voc-memorize-project.onrender.com",
-];
+require("dotenv").config();
+
+const allowedOrigins = process.env.ALLOWED_ORIGINS
+  ? process.env.ALLOWED_ORIGINS.split(",")
+  : [];
 
 const corsOptions = {
   origin: allowedOrigins,
