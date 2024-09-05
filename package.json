@@ -7,7 +7,7 @@
     "start": "cross-env NODE_ENV=production node src/app.js",
     "migrate": "npx sequelize db:migrate --migration migrations/create-tables.js",
     "seed": "npx sequelize db:seed --seed seeders/initial-data.js",
-    "start-with-migrate": "npm run env && npm run migrate && npm run seed && npm run start",
+    "init": "npm run migrate && npm run seed",
     "dev": "cross-env NODE_ENV=development nodemon src/app.js"
   },
   "author": "Ze-Yuan, Duan",
