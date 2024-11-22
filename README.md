@@ -3,7 +3,6 @@ Vocabulary management application fetching daily words, enabling custom tagging 
 
 ## Introduction
 
-
 ## Technical Highlights
 ### Tech Stack
 -   **Languages and Frameworks**: Node.js, Express.js
@@ -73,6 +72,109 @@ Vocabulary management application fetching daily words, enabling custom tagging 
 
 ## API Documentation
 
+### 1. Local User Login
+-  **Method**: POST
+-  **URL**: `{{base_url}}/auth/local`
+-  **Description**: Used for local user login.
+
+**Request Example**:
+
+```json
+{
+"email": "linguini.remy@ratatouille.com",
+"password": "ratatouille123"
+}
+```
+---
+### 2. Google User Login
+-   **Method**: POST
+-   **URL**:  `{{base_url}}/auth/google`
+-   **Description**: Login via Google third-party application.
+---
+### 3. Get User Homepage Data
+-   **Method**: GET
+-   **URL**:  `{{base_url}}/users/stats`
+-   **Description**:
+    -   Returns the user's name and the number of vocabulary items stored.
+    -   Requires  `Authorization`  Bearer Token.
+
+**Response Example**:
+```json
+{
+    "name": "Linguini Remy",
+    "vocStorage": 2
+}
+```
+---
+### 4. Get Vocabulary Data
+-   **Method**: GET
+-   **URL**:  `{{base_url}}/vocabularies`
+-   **Description**: Retrieve vocabulary items along with their associated tags.
+
+**Response Example**:
+```json
+{
+    "status": "success",
+    "data": [
+        {
+            "tagId": 1,
+            "name": "French Cuisine",
+            "vocabularies": [
+                {
+                    "vocId": 1,
+                    "english": "cheese",
+                    "chinese": "乳酪",
+                    "definition": "A food made from the pressed curds of milk.",
+                    "example": "Cheese is a great source of calcium."
+                }
+            ]
+        }
+    ]
+}
+```
+---
+### 5.  Get Daily Vocabularies
+-   **Method**: GET
+-   **URL**:  `{{base_url}}/public/daily-vocabularies`
+-   **Description**:
+    -   Automatically updates with 20 random words every midnight.
+    -   No authentication required.
+---
+### 6. Add Vocabulary
+-   **Method**: POST
+-   **URL**:  `{{base_url}}/vocabularies`
+-   **Description**:
+    -   Add a new vocabulary item.
+    -   The  `english`  field is required, while others are optional.
+
+**Request Example**:
+
+```json
+{
+    "english": "wine",
+    "chinese": "葡萄酒",
+    "definition": "An alcoholic drink made from fermented grapes.",
+    "example": "Wine is often paired with cheese in French cuisine.",
+    "tags": ["French Cuisine", "Beverages"]
+}
+```
+---
+### 7. Update Vocabulary
+-   **Method**: PATCH
+-   **URL**:  `{{base_url}}/vocabularies/{{vocabularyId}}`
+-   **Description**: Update vocabulary data for a specific ID.
+---
+### 8. Delete Vocabulary
+-   **Method**: DELETE
+-   **URL**:  `{{base_url}}/vocabularies/{{vocabularyId}}`
+-   **Description**:
+    -   Delete a specific vocabulary item.
+    -   The response includes the total number of remaining vocabulary items.
+
 ## Team Members
+This project was collaboratively developed by
+-   **Back-End Developer**:  [Ze-Yuan Duan](https://github.com/ZeYuanDuan)
+-   **Front-End Developer**:  [Benson Wu](https://github.com/dan00815)
 
 ## License
+This project is licensed under the [MIT License](https://choosealicense.com/licenses/mit/), permitting unrestricted use, modification, and distribution for both personal and commercial purposes.
