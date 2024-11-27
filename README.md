@@ -1,8 +1,14 @@
 # Vocabulary Flashcards
 
+![Project icon](assets\images\VOC.png)
+
 Vocabulary management application fetching daily words, enabling custom tagging and organization.
 
 ## Introduction
+
+Need a better way to learn new vocabulary? Vocabulary Flashcards provides a simple solution.
+
+Get daily word recommendations to expand your vocabulary effortlessly. Save the words you want to learn, organize them with custom tags, and review them anytime to reinforce your memory.
 
 ## Technical Highlights
 
@@ -159,6 +165,10 @@ The initial data includes a test account:
 - Password: ratatouille123
 
 ## Database Schema
+
+![Database EER Diagram](assets/images/EER%20Diagram.png)
+
+_Entity-Relationship Diagram showing the database structure_
 
 ## API Documentation
 
