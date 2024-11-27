@@ -1,8 +1,19 @@
 # Vocabulary Flashcards
 
-![Project icon](assets\images\VOC.png)
+![Project icon](assets/images/VOC.png)
 
 Vocabulary management application fetching daily words, enabling custom tagging and organization.
+
+## Table of Contents
+
+- [Introduction](#introduction)
+- [Technical Highlights](#technical-highlights)
+- [Demo](#demo)
+- [Setup and Installation](#setup-and-installation)
+- [Database Schema](#database-schema)
+- [API Documentation](#api-documentation)
+- [Team Members](#team-members)
+- [License](#license)
 
 ## Introduction
 
