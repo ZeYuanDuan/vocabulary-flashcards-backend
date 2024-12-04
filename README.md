@@ -21,7 +21,7 @@ Need a better way to learn new vocabulary? Vocabulary Flashcards provides a simp
 
 Get daily word recommendations to expand your vocabulary effortlessly. Save the words you want to learn, organize them with custom tags, and review them anytime to reinforce your memory.
 
-This project is part of a front-end and back-end separation architecture. You can find the front-end repository here: [Vocabulary Flashcards Frontend](https://github.com/dan00815/voc-memorize-projectt).
+This project is part of a front-end and back-end separation architecture. You can find the front-end repository here: [Vocabulary Flashcards Frontend](https://github.com/dan00815/voc-memorize-project).
 
 
 ## Technical Highlights
